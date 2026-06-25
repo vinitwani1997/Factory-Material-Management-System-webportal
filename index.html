@@ -1,0 +1,2190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FMMS — Factory Material Management</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --navy: #0F172A;
+    --navy-800: #1E293B;
+    --navy-700: #334155;
+    --navy-600: #475569;
+    --slate: #64748B;
+    --slate-300: #CBD5E1;
+    --slate-200: #E2E8F0;
+    --slate-100: #F1F5F9;
+    --white: #FFFFFF;
+    --blue: #3B82F6;
+    --blue-dark: #2563EB;
+    --blue-light: #EFF6FF;
+    --amber: #F59E0B;
+    --amber-light: #FFFBEB;
+    --emerald: #10B981;
+    --emerald-light: #ECFDF5;
+    --red: #EF4444;
+    --red-light: #FEF2F2;
+    --purple: #8B5CF6;
+    --purple-light: #F5F3FF;
+    --sidebar-w: 240px;
+    --header-h: 56px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--slate-100); color: var(--navy); min-height: 100vh; }
+
+  /* ── AUTH SCREEN ── */
+  #auth-screen {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; background: var(--navy);
+  }
+  .auth-card {
+    background: var(--white); border-radius: 12px; padding: 40px;
+    width: 380px; box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+  }
+  .auth-logo {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 28px;
+  }
+  .auth-logo-icon {
+    width: 36px; height: 36px; background: var(--blue); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .auth-logo-text { font-size: 20px; font-weight: 700; color: var(--navy); }
+  .auth-subtitle { font-size: 13px; color: var(--slate); margin-bottom: 24px; }
+
+  /* ── APP LAYOUT ── */
+  #app-screen { display: none; height: 100vh; overflow: hidden; }
+  .layout { display: flex; height: 100vh; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: var(--sidebar-w); background: var(--navy); display: flex;
+    flex-direction: column; flex-shrink: 0; overflow-y: auto;
+  }
+  .sidebar-header {
+    padding: 16px 20px; border-bottom: 1px solid var(--navy-700);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .sidebar-logo-icon {
+    width: 30px; height: 30px; background: var(--blue); border-radius: 6px;
+    display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0;
+  }
+  .sidebar-logo-text { font-size: 15px; font-weight: 700; color: var(--white); }
+  .sidebar-user {
+    padding: 12px 20px; border-bottom: 1px solid var(--navy-700);
+  }
+  .sidebar-user-name { font-size: 13px; font-weight: 600; color: var(--white); }
+  .sidebar-user-role { font-size: 11px; color: var(--slate); margin-top: 2px; }
+
+  .nav-section { padding: 16px 0 8px; }
+  .nav-section-label {
+    padding: 0 20px 6px; font-size: 10px; font-weight: 600;
+    color: var(--navy-600); text-transform: uppercase; letter-spacing: 0.8px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 9px 20px;
+    color: var(--slate-300); font-size: 13px; cursor: pointer;
+    border-left: 3px solid transparent; transition: all 0.15s;
+  }
+  .nav-item:hover { background: var(--navy-800); color: var(--white); }
+  .nav-item.active { background: var(--navy-800); color: var(--white); border-left-color: var(--blue); }
+  .nav-item .nav-icon { font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; }
+  .sidebar-footer { margin-top: auto; padding: 16px 20px; border-top: 1px solid var(--navy-700); }
+  .logout-btn {
+    display: flex; align-items: center; gap: 8px; color: var(--slate);
+    font-size: 13px; cursor: pointer; padding: 6px 0;
+  }
+  .logout-btn:hover { color: var(--red); }
+
+  /* ── MAIN CONTENT ── */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar {
+    height: var(--header-h); background: var(--white); border-bottom: 1px solid var(--slate-200);
+    display: flex; align-items: center; padding: 0 24px; gap: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .page-title { font-size: 16px; font-weight: 600; color: var(--navy); }
+  .topbar-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .content { flex: 1; overflow-y: auto; padding: 24px; }
+
+  /* ── SHARED COMPONENTS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px;
+    border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer;
+    border: none; transition: all 0.15s; font-family: inherit;
+  }
+  .btn-primary { background: var(--blue); color: var(--white); }
+  .btn-primary:hover { background: var(--blue-dark); }
+  .btn-secondary { background: var(--white); color: var(--navy-700); border: 1px solid var(--slate-200); }
+  .btn-secondary:hover { background: var(--slate-100); }
+  .btn-danger { background: var(--red); color: var(--white); }
+  .btn-danger:hover { background: #DC2626; }
+  .btn-ghost { background: transparent; color: var(--slate); padding: 6px 10px; }
+  .btn-ghost:hover { background: var(--slate-100); color: var(--navy); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn-warning { background: var(--amber); color: var(--white); }
+  .btn-success { background: var(--emerald); color: var(--white); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .card {
+    background: var(--white); border-radius: 10px; border: 1px solid var(--slate-200);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 16px 20px; border-bottom: 1px solid var(--slate-200);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-title { font-size: 14px; font-weight: 600; color: var(--navy); }
+  .card-body { padding: 20px; }
+
+  /* Form */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.span2 { grid-column: span 2; }
+  label { font-size: 12px; font-weight: 500; color: var(--navy-700); }
+  input, select, textarea {
+    padding: 8px 12px; border: 1px solid var(--slate-200); border-radius: 6px;
+    font-size: 13px; font-family: inherit; color: var(--navy); background: var(--white);
+    transition: border 0.15s; outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+  textarea { resize: vertical; min-height: 80px; }
+  .form-hint { font-size: 11px; color: var(--slate); }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    padding: 10px 16px; text-align: left; font-size: 11px; font-weight: 600;
+    color: var(--slate); text-transform: uppercase; letter-spacing: 0.5px;
+    background: var(--slate-100); border-bottom: 1px solid var(--slate-200);
+    white-space: nowrap;
+  }
+  tbody td { padding: 12px 16px; border-bottom: 1px solid var(--slate-100); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--slate-100); }
+
+  /* Badge */
+  .badge {
+    display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px;
+    font-size: 11px; font-weight: 600; white-space: nowrap;
+  }
+  .badge-pending { background: var(--amber-light); color: #92400E; }
+  .badge-partial { background: var(--blue-light); color: #1E40AF; }
+  .badge-completed { background: var(--emerald-light); color: #065F46; }
+  .badge-cancelled { background: var(--red-light); color: #991B1B; }
+  .badge-planned { background: var(--purple-light); color: #5B21B6; }
+  .badge-in_progress { background: var(--blue-light); color: #1E40AF; }
+  .badge-active { background: var(--emerald-light); color: #065F46; }
+  .badge-inactive { background: var(--red-light); color: #991B1B; }
+  .badge-raw_material { background: #FFF7ED; color: #9A3412; }
+  .badge-semi_finished { background: var(--purple-light); color: #5B21B6; }
+  .badge-finished_good { background: var(--emerald-light); color: #065F46; }
+
+  /* Code tag */
+  .code-tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    background: var(--slate-100); color: var(--navy-700); padding: 2px 6px;
+    border-radius: 4px; border: 1px solid var(--slate-200);
+  }
+
+  /* Stats cards */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--white); border-radius: 10px; border: 1px solid var(--slate-200);
+    padding: 20px;
+  }
+  .stat-label { font-size: 12px; color: var(--slate); font-weight: 500; margin-bottom: 8px; }
+  .stat-value { font-size: 28px; font-weight: 700; color: var(--navy); font-family: 'JetBrains Mono', monospace; }
+  .stat-sub { font-size: 12px; color: var(--slate); margin-top: 4px; }
+  .stat-icon { font-size: 20px; margin-bottom: 12px; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    z-index: 1000; align-items: center; justify-content: center; padding: 24px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--white); border-radius: 12px; width: 100%; max-width: 640px;
+    max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+  }
+  .modal-lg { max-width: 800px; }
+  .modal-header {
+    padding: 20px 24px 16px; border-bottom: 1px solid var(--slate-200);
+    display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--white); z-index: 1;
+  }
+  .modal-title { font-size: 15px; font-weight: 600; }
+  .modal-body { padding: 20px 24px; }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--slate-200); display: flex; gap: 8px; justify-content: flex-end; }
+  .modal-close { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--slate); padding: 4px; }
+  .modal-close:hover { color: var(--navy); }
+
+  /* Line items editor */
+  .line-items-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .line-items-label { font-size: 13px; font-weight: 600; color: var(--navy); }
+  .line-item-row {
+    display: grid; gap: 8px; align-items: end; margin-bottom: 8px;
+    padding: 12px; background: var(--slate-100); border-radius: 6px;
+  }
+  .line-item-remove {
+    background: none; border: none; color: var(--red); cursor: pointer;
+    font-size: 16px; padding: 4px; line-height: 1;
+  }
+
+  /* Toast */
+  .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    padding: 12px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    max-width: 360px; box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    animation: slideIn 0.2s ease; display: flex; align-items: center; gap: 8px;
+  }
+  .toast-success { background: var(--emerald); color: var(--white); }
+  .toast-error { background: var(--red); color: var(--white); }
+  .toast-info { background: var(--blue); color: var(--white); }
+  @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  /* Empty state */
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--slate); }
+  .empty-state-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state-text { font-size: 14px; font-weight: 500; color: var(--navy-700); margin-bottom: 4px; }
+  .empty-state-sub { font-size: 13px; }
+
+  /* Loading */
+  .loading { text-align: center; padding: 40px; color: var(--slate); font-size: 13px; }
+  .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--slate-200); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.7s linear infinite; margin-bottom: 8px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Filter bar */
+  .filter-bar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .filter-bar input, .filter-bar select { padding: 7px 12px; min-width: 160px; }
+
+  /* Detail sections */
+  .detail-section { margin-bottom: 20px; }
+  .detail-section-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate); margin-bottom: 10px; }
+  .detail-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+  .detail-item label { font-size: 11px; color: var(--slate); }
+  .detail-item .value { font-size: 13px; font-weight: 500; color: var(--navy); margin-top: 2px; }
+
+  /* Alert */
+  .alert { padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
+  .alert-warning { background: var(--amber-light); color: #92400E; border: 1px solid #FDE68A; }
+  .alert-error { background: var(--red-light); color: #991B1B; border: 1px solid #FECACA; }
+
+  /* Page sections */
+  .page-section { margin-bottom: 24px; }
+
+  /* Tab bar */
+  .tab-bar { display: flex; gap: 4px; border-bottom: 2px solid var(--slate-200); margin-bottom: 20px; }
+  .tab-item { padding: 8px 16px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--slate); border-bottom: 2px solid transparent; margin-bottom: -2px; }
+  .tab-item.active { color: var(--blue); border-bottom-color: var(--blue); }
+  .tab-item:hover:not(.active) { color: var(--navy); }
+
+  /* Status dot */
+  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 4px; }
+  .dot-green { background: var(--emerald); }
+  .dot-amber { background: var(--amber); }
+  .dot-red { background: var(--red); }
+  .dot-blue { background: var(--blue); }
+  .dot-purple { background: var(--purple); }
+
+  /* Info box */
+  .info-box { background: var(--blue-light); border: 1px solid #BFDBFE; border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #1E40AF; margin-bottom: 16px; }
+
+  /* Divider */
+  .divider { border: none; border-top: 1px solid var(--slate-200); margin: 20px 0; }
+
+  /* Responsive tweaks */
+  @media (max-width: 900px) {
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .detail-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">🏭</div>
+      <div>
+        <div class="auth-logo-text">FMMS</div>
+        <div style="font-size:11px;color:var(--slate);">Factory Material Management</div>
+      </div>
+    </div>
+    <div class="auth-subtitle">Sign in to your account to continue</div>
+    <div id="auth-error" class="alert alert-error" style="display:none;"></div>
+    <div class="form-group" style="margin-bottom:14px;">
+      <label>Email Address</label>
+      <input type="email" id="login-email" placeholder="you@factory.com" />
+    </div>
+    <div class="form-group" style="margin-bottom:20px;">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="••••••••" />
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="doLogin()">
+      Sign In
+    </button>
+    <hr class="divider" />
+    <p style="font-size:12px;color:var(--slate);text-align:center;">
+      Don't have an account?
+      <span style="color:var(--blue);cursor:pointer;" onclick="showRegister()">Register here</span>
+    </p>
+  </div>
+</div>
+
+<!-- REGISTER MODAL -->
+<div class="modal-overlay" id="register-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Create New Account</span>
+      <button class="modal-close" onclick="closeModal('register-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="register-error" class="alert alert-error" style="display:none;"></div>
+      <div class="form-grid">
+        <div class="form-group span2"><label>Full Name</label><input id="reg-name" placeholder="Rahul Sharma" /></div>
+        <div class="form-group"><label>Email</label><input type="email" id="reg-email" placeholder="email@factory.com" /></div>
+        <div class="form-group"><label>Password</label><input type="password" id="reg-password" placeholder="min 6 chars" /></div>
+        <div class="form-group span2">
+          <label>Role</label>
+          <select id="reg-role"></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('register-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="doRegister()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP SCREEN -->
+<div id="app-screen">
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo-icon">🏭</div>
+        <div class="sidebar-logo-text">FMMS</div>
+      </div>
+      <div class="sidebar-user">
+        <div class="sidebar-user-name" id="sb-user-name">—</div>
+        <div class="sidebar-user-role" id="sb-user-role">—</div>
+      </div>
+      <nav>
+        <div class="nav-section">
+          <div class="nav-section-label">Overview</div>
+          <div class="nav-item active" onclick="navigate('dashboard')"><span class="nav-icon">📊</span>Dashboard</div>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-label">Masters</div>
+          <div class="nav-item" onclick="navigate('items')"><span class="nav-icon">📦</span>Items</div>
+          <div class="nav-item" onclick="navigate('warehouses')"><span class="nav-icon">🏪</span>Warehouses</div>
+          <div class="nav-item" onclick="navigate('suppliers')"><span class="nav-icon">🚚</span>Suppliers</div>
+          <div class="nav-item" onclick="navigate('customers')"><span class="nav-icon">🤝</span>Customers</div>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-label">Inward</div>
+          <div class="nav-item" onclick="navigate('purchase_orders')"><span class="nav-icon">🛒</span>Purchase Orders</div>
+          <div class="nav-item" onclick="navigate('grn')"><span class="nav-icon">📥</span>Goods Receipt (GRN)</div>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-label">Stock</div>
+          <div class="nav-item" onclick="navigate('stock')"><span class="nav-icon">📋</span>Stock Ledger</div>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-label">Production</div>
+          <div class="nav-item" onclick="navigate('bom')"><span class="nav-icon">🔧</span>Bill of Materials</div>
+          <div class="nav-item" onclick="navigate('production_orders')"><span class="nav-icon">⚙️</span>Production Orders</div>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-label">Outward</div>
+          <div class="nav-item" onclick="navigate('sales_orders')"><span class="nav-icon">🧾</span>Sales Orders</div>
+          <div class="nav-item" onclick="navigate('dispatch')"><span class="nav-icon">🚛</span>Dispatch</div>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-label">Settings</div>
+          <div class="nav-item" onclick="navigate('roles')"><span class="nav-icon">👥</span>Roles</div>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="logout-btn" onclick="doLogout()">🚪 Logout</div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+      <div class="topbar">
+        <div class="page-title" id="page-title">Dashboard</div>
+        <div class="topbar-actions" id="topbar-actions"></div>
+      </div>
+      <div class="content" id="main-content">
+        <div class="loading"><div class="spinner"></div><br/>Loading…</div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- GENERIC CONFIRM MODAL -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header">
+      <span class="modal-title" id="confirm-title">Confirm</span>
+      <button class="modal-close" onclick="closeModal('confirm-modal')">✕</button>
+    </div>
+    <div class="modal-body"><p id="confirm-message" style="font-size:14px;color:var(--navy-700);"></p></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('confirm-modal')">Cancel</button>
+      <button class="btn btn-danger" id="confirm-ok-btn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// CONFIG & STATE
+// ─────────────────────────────────────────────
+// const API = 'http://127.0.0.1:8000';
+const API = 'https://factory-material-management-system.onrender.com';
+let TOKEN = localStorage.getItem('fmms_token') || '';
+let CURRENT_USER = null;
+let CURRENT_PAGE = '';
+
+// Cache for dropdowns
+let _items = [], _warehouses = [], _suppliers = [], _customers = [], _roles = [], _boms = [], _pos = [], _sos = [];
+
+// ─────────────────────────────────────────────
+// API HELPER
+// ─────────────────────────────────────────────
+async function api(method, path, body = null, form = false) {
+  const headers = {};
+  if (TOKEN) headers['Authorization'] = `Bearer ${TOKEN}`;
+  if (body && !form) headers['Content-Type'] = 'application/json';
+
+  const opts = { method, headers };
+  if (body) opts.body = form ? body : JSON.stringify(body);
+
+  const r = await fetch(API + path, opts);
+  if (r.status === 204) return null;
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.detail || JSON.stringify(data));
+  return data;
+}
+
+function showToast(msg, type = 'success') {
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.innerHTML = `<span>${type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}</span> ${msg}`;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function confirm(title, message, onOk, dangerLabel = 'Confirm') {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-message').textContent = message;
+  const btn = document.getElementById('confirm-ok-btn');
+  btn.textContent = dangerLabel;
+  btn.onclick = () => { closeModal('confirm-modal'); onOk(); };
+  openModal('confirm-modal');
+}
+
+function badge(status) {
+  const s = (status || '').toLowerCase().replace(' ', '_');
+  return `<span class="badge badge-${s}">${status}</span>`;
+}
+function codeBadge(code) { return `<span class="code-tag">${code}</span>`; }
+function fmt(val) { return val !== null && val !== undefined ? val : '—'; }
+function fmtDate(d) { return d ? d.split('T')[0] : '—'; }
+
+// ─────────────────────────────────────────────
+// AUTH
+// ─────────────────────────────────────────────
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-password').value;
+  const errEl = document.getElementById('auth-error');
+  errEl.style.display = 'none';
+  try {
+    const form = new URLSearchParams();
+    form.append('username', email);
+    form.append('password', pw);
+    const data = await api('POST', '/auth/login', form, true);
+    TOKEN = data.access_token;
+    localStorage.setItem('fmms_token', TOKEN);
+    await initApp();
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+async function showRegister() {
+  const roles = await api('GET', '/roles/');
+  _roles = roles;
+  const sel = document.getElementById('reg-role');
+  sel.innerHTML = roles.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+  openModal('register-modal');
+}
+
+async function doRegister() {
+  const errEl = document.getElementById('register-error');
+  errEl.style.display = 'none';
+  try {
+    await api('POST', '/auth/register', {
+      name: document.getElementById('reg-name').value.trim(),
+      email: document.getElementById('reg-email').value.trim(),
+      password: document.getElementById('reg-password').value,
+      role_id: parseInt(document.getElementById('reg-role').value),
+    });
+    closeModal('register-modal');
+    showToast('Account created! You can now log in.');
+  } catch(e) {
+    errEl.textContent = e.message; errEl.style.display = 'block';
+  }
+}
+
+function doLogout() {
+  TOKEN = ''; CURRENT_USER = null;
+  localStorage.removeItem('fmms_token');
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+}
+
+// ─────────────────────────────────────────────
+// APP INIT
+// ─────────────────────────────────────────────
+async function initApp() {
+  try {
+    CURRENT_USER = await api('GET', '/auth/me');
+    document.getElementById('sb-user-name').textContent = CURRENT_USER.name;
+    document.getElementById('sb-user-role').textContent = `Role #${CURRENT_USER.role_id}`;
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display = 'block';
+    // Pre-load caches
+    await refreshCaches();
+    navigate('dashboard');
+  } catch(e) {
+    showToast('Session expired. Please log in.', 'error');
+  }
+}
+
+async function refreshCaches() {
+  try {
+    [_items, _warehouses, _suppliers, _customers, _roles] = await Promise.all([
+      api('GET', '/items/'), api('GET', '/warehouses/'), api('GET', '/suppliers/'),
+      api('GET', '/customers/'), api('GET', '/roles/')
+    ]);
+    _boms = await api('GET', '/boms/?active_only=false');
+    _pos = await api('GET', '/purchase-orders/');
+    _sos = await api('GET', '/sales-orders/');
+  } catch(e) { /* non-critical */ }
+}
+
+// ─────────────────────────────────────────────
+// NAVIGATION
+// ─────────────────────────────────────────────
+function navigate(page) {
+  CURRENT_PAGE = page;
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const sel = document.querySelector(`.nav-item[onclick="navigate('${page}')"]`);
+  if (sel) sel.classList.add('active');
+
+  const titles = {
+    dashboard: 'Dashboard', items: 'Item Master', warehouses: 'Warehouse Master',
+    suppliers: 'Supplier Master', customers: 'Customer Master',
+    purchase_orders: 'Purchase Orders', grn: 'Goods Receipt Notes',
+    stock: 'Stock Ledger', bom: 'Bill of Materials',
+    production_orders: 'Production Orders', sales_orders: 'Sales Orders',
+    dispatch: 'Dispatch Notes', roles: 'Roles'
+  };
+  document.getElementById('page-title').textContent = titles[page] || page;
+
+  const pages = {
+    dashboard: renderDashboard, items: renderItems, warehouses: renderWarehouses,
+    suppliers: renderSuppliers, customers: renderCustomers, purchase_orders: renderPurchaseOrders,
+    grn: renderGRN, stock: renderStock, bom: renderBOM, production_orders: renderProductionOrders,
+    sales_orders: renderSalesOrders, dispatch: renderDispatch, roles: renderRoles
+  };
+  if (pages[page]) pages[page]();
+}
+
+function setContent(html) { document.getElementById('main-content').innerHTML = html; }
+function setTopbarActions(html) { document.getElementById('topbar-actions').innerHTML = html; }
+
+// ─────────────────────────────────────────────
+// DASHBOARD
+// ─────────────────────────────────────────────
+async function renderDashboard() {
+  setTopbarActions('');
+  setContent('<div class="loading"><div class="spinner"></div><br/>Loading dashboard…</div>');
+  try {
+    const [items, pos, sos, grns] = await Promise.all([
+      api('GET', '/items/'), api('GET', '/purchase-orders/'),
+      api('GET', '/sales-orders/'), api('GET', '/grn/')
+    ]);
+    const pendingPOs = pos.filter(p => p.status === 'pending').length;
+    const pendingSOs = sos.filter(s => s.status === 'pending').length;
+    const recentGRNs = grns.slice(0, 5);
+    const recentSOs = sos.slice(0, 5);
+
+    setContent(`
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">📦</div>
+          <div class="stat-label">Total Items</div>
+          <div class="stat-value">${items.length}</div>
+          <div class="stat-sub">${items.filter(i=>i.category==='raw_material').length} raw materials</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🛒</div>
+          <div class="stat-label">Purchase Orders</div>
+          <div class="stat-value">${pos.length}</div>
+          <div class="stat-sub">${pendingPOs} pending</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🧾</div>
+          <div class="stat-label">Sales Orders</div>
+          <div class="stat-value">${sos.length}</div>
+          <div class="stat-sub">${pendingSOs} pending</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📥</div>
+          <div class="stat-label">GRNs Created</div>
+          <div class="stat-value">${grns.length}</div>
+          <div class="stat-sub">all time</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Recent GRNs</span></div>
+          <div class="table-wrap">
+            <table><thead><tr><th>GRN#</th><th>PO#</th><th>Date</th></tr></thead>
+            <tbody>
+              ${recentGRNs.length ? recentGRNs.map(g => `
+                <tr>
+                  <td>${codeBadge(g.grn_number)}</td>
+                  <td style="color:var(--slate);font-size:12px;">${g.po_number}</td>
+                  <td style="font-size:12px;">${fmtDate(g.received_date)}</td>
+                </tr>`).join('') : '<tr><td colspan="3" style="text-align:center;color:var(--slate);padding:20px;">No GRNs yet</td></tr>'}
+            </tbody></table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Recent Sales Orders</span></div>
+          <div class="table-wrap">
+            <table><thead><tr><th>SO#</th><th>Customer</th><th>Status</th></tr></thead>
+            <tbody>
+              ${recentSOs.length ? recentSOs.map(s => `
+                <tr>
+                  <td>${codeBadge(s.so_number)}</td>
+                  <td style="font-size:12px;">${s.customer_name}</td>
+                  <td>${badge(s.status)}</td>
+                </tr>`).join('') : '<tr><td colspan="3" style="text-align:center;color:var(--slate);padding:20px;">No SOs yet</td></tr>'}
+            </tbody></table>
+          </div>
+        </div>
+      </div>
+    `);
+  } catch(e) { setContent(`<div class="alert alert-error">${e.message}</div>`); }
+}
+
+// ─────────────────────────────────────────────
+// ITEMS
+// ─────────────────────────────────────────────
+async function renderItems() {
+  setTopbarActions(`<button class="btn btn-primary" onclick="openItemModal()">+ New Item</button>`);
+  setContent('<div class="loading"><div class="spinner"></div><br/>Loading…</div>');
+  try {
+    const items = await api('GET', '/items/');
+    _items = items;
+    setContent(`
+      <div class="filter-bar">
+        <input id="item-search" placeholder="🔍 Search name or code…" oninput="filterItems()" style="flex:1;max-width:300px;" />
+        <select id="item-cat-filter" onchange="filterItems()">
+          <option value="">All Categories</option>
+          <option value="raw_material">Raw Material</option>
+          <option value="semi_finished">Semi-Finished</option>
+          <option value="finished_good">Finished Good</option>
+        </select>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Code</th><th>Name</th><th>Category</th><th>Unit</th><th>Min Stock</th><th>Created</th><th>Actions</th></tr></thead>
+            <tbody id="items-tbody">
+              ${renderItemRows(items)}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `);
+  } catch(e) { setContent(`<div class="alert alert-error">${e.message}</div>`); }
+}
+
+function renderItemRows(items) {
+  if (!items.length) return `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📦</div><div class="empty-state-text">No items found</div><div class="empty-state-sub">Create your first item using the button above</div></div></td></tr>`;
+  return items.map(i => `
+    <tr>
+      <td>${codeBadge(i.item_code)}</td>
+      <td style="font-weight:500;">${i.name}</td>
+      <td>${badge(i.category)}</td>
+      <td>${i.unit}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${i.min_stock_level}</td>
+      <td style="font-size:12px;color:var(--slate);">${fmtDate(i.created_at)}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="openItemModal(${i.id})">✏️ Edit</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="deleteItem(${i.id},'${i.name}')">🗑️</button>
+      </td>
+    </tr>`).join('');
+}
+
+function filterItems() {
+  const search = document.getElementById('item-search').value.toLowerCase();
+  const cat = document.getElementById('item-cat-filter').value;
+  const filtered = _items.filter(i =>
+    (!search || i.name.toLowerCase().includes(search) || i.item_code.toLowerCase().includes(search)) &&
+    (!cat || i.category === cat)
+  );
+  document.getElementById('items-tbody').innerHTML = renderItemRows(filtered);
+}
+
+async function openItemModal(id = null) {
+  const item = id ? _items.find(i => i.id === id) : null;
+  const html = `
+    <div class="modal-overlay open" id="item-modal">
+      <div class="modal">
+        <div class="modal-header">
+          <span class="modal-title">${item ? 'Edit Item' : 'New Item'}</span>
+          <button class="modal-close" onclick="closeModal('item-modal')">✕</button>
+        </div>
+        <div class="modal-body">
+          <div id="item-modal-error" class="alert alert-error" style="display:none;"></div>
+          <div class="form-grid">
+            <div class="form-group"><label>Item Code</label><input id="im-code" value="${item?.item_code||''}" placeholder="RM-STEEL-001" ${item?'readonly':''}/></div>
+            <div class="form-group"><label>Unit</label><input id="im-unit" value="${item?.unit||''}" placeholder="kg, pcs, litre…" /></div>
+            <div class="form-group span2"><label>Item Name</label><input id="im-name" value="${item?.name||''}" placeholder="Steel Sheet 2mm" /></div>
+            <div class="form-group"><label>Category</label>
+              <select id="im-cat">
+                <option value="raw_material" ${item?.category==='raw_material'?'selected':''}>Raw Material</option>
+                <option value="semi_finished" ${item?.category==='semi_finished'?'selected':''}>Semi-Finished</option>
+                <option value="finished_good" ${item?.category==='finished_good'?'selected':''}>Finished Good</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Min Stock Level</label><input type="number" id="im-min" value="${item?.min_stock_level||0}" min="0" /></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('item-modal')">Cancel</button>
+          <button class="btn btn-primary" onclick="saveItem(${id||'null'})">${item?'Update':'Create'}</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function saveItem(id) {
+  const errEl = document.getElementById('item-modal-error');
+  errEl.style.display = 'none';
+  const body = {
+    item_code: document.getElementById('im-code').value.trim(),
+    name: document.getElementById('im-name').value.trim(),
+    category: document.getElementById('im-cat').value,
+    unit: document.getElementById('im-unit').value.trim(),
+    min_stock_level: parseFloat(document.getElementById('im-min').value) || 0
+  };
+  try {
+    if (id) {
+      await api('PUT', `/items/${id}`, { name: body.name, category: body.category, unit: body.unit, min_stock_level: body.min_stock_level });
+    } else {
+      await api('POST', '/items/', body);
+    }
+    closeModal('item-modal');
+    document.getElementById('item-modal').remove();
+    showToast(id ? 'Item updated!' : 'Item created!');
+    renderItems();
+  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+}
+
+async function deleteItem(id, name) {
+  confirm('Delete Item', `Delete "${name}"? This cannot be undone.`, async () => {
+    try {
+      await api('DELETE', `/items/${id}`);
+      showToast('Item deleted.');
+      renderItems();
+    } catch(e) { showToast(e.message, 'error'); }
+  }, 'Delete');
+}
+
+// ─────────────────────────────────────────────
+// WAREHOUSES
+// ─────────────────────────────────────────────
+async function renderWarehouses() {
+  setTopbarActions(`<button class="btn btn-primary" onclick="openWarehouseModal()">+ New Warehouse</button>`);
+  setContent('<div class="loading"><div class="spinner"></div><br/>Loading…</div>');
+  try {
+    const wh = await api('GET', '/warehouses/');
+    _warehouses = wh;
+    setContent(`
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Address</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              ${wh.length ? wh.map(w => `
+                <tr>
+                  <td style="font-weight:500;">${w.name}</td>
+                  <td style="font-size:12px;color:var(--slate);">${w.address||'—'}</td>
+                  <td>${w.is_active ? '<span class="badge badge-active">Active</span>' : '<span class="badge badge-inactive">Inactive</span>'}</td>
+                  <td>
+                    <button class="btn btn-ghost btn-sm" onclick="openWarehouseModal(${w.id})">✏️ Edit</button>
+                    ${w.is_active ? `<button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="deactivateWarehouse(${w.id},'${w.name}')">🚫 Deactivate</button>` : ''}
+                  </td>
+                </tr>`).join('') : `<tr><td colspan="4"><div class="empty-state"><div class="empty-state-icon">🏪</div><div class="empty-state-text">No warehouses yet</div></div></td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      </div>`);
+  } catch(e) { setContent(`<div class="alert alert-error">${e.message}</div>`); }
+}
+
+async function openWarehouseModal(id = null) {
+  const wh = id ? _warehouses.find(w => w.id === id) : null;
+  const html = `
+    <div class="modal-overlay open" id="wh-modal">
+      <div class="modal">
+        <div class="modal-header">
+          <span class="modal-title">${wh ? 'Edit Warehouse' : 'New Warehouse'}</span>
+          <button class="modal-close" onclick="closeModal('wh-modal');document.getElementById('wh-modal').remove()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div id="wh-error" class="alert alert-error" style="display:none;"></div>
+          <div class="form-group" style="margin-bottom:14px;"><label>Name</label><input id="wh-name" value="${wh?.name||''}" placeholder="Plant A – MIDC Nashik" /></div>
+          <div class="form-group"><label>Address</label><textarea id="wh-addr">${wh?.address||''}</textarea></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('wh-modal');document.getElementById('wh-modal').remove()">Cancel</button>
+          <button class="btn btn-primary" onclick="saveWarehouse(${id||'null'})">${wh?'Update':'Create'}</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function saveWarehouse(id) {
+  const errEl = document.getElementById('wh-error');
+  errEl.style.display = 'none';
+  const body = { name: document.getElementById('wh-name').value.trim(), address: document.getElementById('wh-addr').value.trim() };
+  try {
+    if (id) await api('PUT', `/warehouses/${id}`, body);
+    else await api('POST', '/warehouses/', body);
+    document.getElementById('wh-modal').remove();
+    showToast(id ? 'Warehouse updated!' : 'Warehouse created!');
+    renderWarehouses();
+  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+}
+
+async function deactivateWarehouse(id, name) {
+  confirm('Deactivate Warehouse', `Deactivate "${name}"?`, async () => {
+    try { await api('DELETE', `/warehouses/${id}`); showToast('Warehouse deactivated.'); renderWarehouses(); }
+    catch(e) { showToast(e.message, 'error'); }
+  }, 'Deactivate');
+}
+
+// ─────────────────────────────────────────────
+// SUPPLIERS
+// ─────────────────────────────────────────────
+async function renderSuppliers() {
+  setTopbarActions(`<button class="btn btn-primary" onclick="openPartnerModal('supplier')">+ New Supplier</button>`);
+  setContent('<div class="loading"><div class="spinner"></div><br/>Loading…</div>');
+  try {
+    const data = await api('GET', '/suppliers/');
+    _suppliers = data;
+    setContent(`
+      <div class="filter-bar">
+        <input id="sup-search" placeholder="🔍 Search supplier name…" oninput="filterPartners('supplier',_suppliers,'sup-search')" style="flex:1;max-width:300px;" />
+      </div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>Name</th><th>Contact</th><th>Email</th><th>GST Number</th><th>Actions</th></tr></thead>
+        <tbody id="supplier-tbody">${renderPartnerRows(data,'supplier')}</tbody>
+      </table></div></div>`);
+  } catch(e) { setContent(`<div class="alert alert-error">${e.message}</div>`); }
+}
+
+async function renderCustomers() {
+  setTopbarActions(`<button class="btn btn-primary" onclick="openPartnerModal('customer')">+ New Customer</button>`);
+  setContent('<div class="loading"><div class="spinner"></div><br/>Loading…</div>');
+  try {
+    const data = await api('GET', '/customers/');
+    _customers = data;
+    setContent(`
+      <div class="filter-bar">
+        <input id="cus-search" placeholder="🔍 Search customer name…" oninput="filterPartners('customer',_customers,'cus-search')" style="flex:1;max-width:300px;" />
+      </div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>Name</th><th>Contact</th><th>Email</th><th>GST Number</th><th>Actions</th></tr></thead>
+        <tbody id="customer-tbody">${renderPartnerRows(data,'customer')}</tbody>
+      </table></div></div>`);
+  } catch(e) { setContent(`<div class="alert alert-error">${e.message}</div>`); }
+}
+
+function renderPartnerRows(data, type) {
+  if (!data.length) return `<tr><td colspan="5"><div class="empty-state"><div class="empty-state-icon">🤝</div><div class="empty-state-text">No ${type}s yet</div></div></td></tr>`;
+  return data.map(p => `
+    <tr>
+      <td style="font-weight:500;">${p.name}</td>
+      <td style="font-size:12px;">${p.contact_number||'—'}</td>
+      <td style="font-size:12px;">${p.email||'—'}</td>
+      <td style="font-size:12px;">${p.gst_number||'—'}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="openPartnerModal('${type}',${p.id})">✏️ Edit</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="deletePartner('${type}',${p.id},'${p.name}')">🗑️</button>
+      </td>
+    </tr>`).join('');
+}
+
+function filterPartners(type, arr, inputId) {
+  const q = document.getElementById(inputId).value.toLowerCase();
+  const tbodyId = type === 'supplier' ? 'supplier-tbody' : 'customer-tbody';
+  const filtered = arr.filter(p => p.name.toLowerCase().includes(q));
+  document.getElementById(tbodyId).innerHTML = renderPartnerRows(filtered, type);
+}
+
+async function openPartnerModal(type, id = null) {
+  const arr = type === 'supplier' ? _suppliers : _customers;
+  const p = id ? arr.find(x => x.id === id) : null;
+  const label = type === 'supplier' ? 'Supplier' : 'Customer';
+  const html = `
+    <div class="modal-overlay open" id="partner-modal">
+      <div class="modal">
+        <div class="modal-header">
+          <span class="modal-title">${p ? 'Edit' : 'New'} ${label}</span>
+          <button class="modal-close" onclick="document.getElementById('partner-modal').remove()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div id="partner-error" class="alert alert-error" style="display:none;"></div>
+          <div class="form-grid">
+            <div class="form-group span2"><label>Name *</label><input id="pt-name" value="${p?.name||''}" /></div>
+            <div class="form-group"><label>Contact Number</label><input id="pt-phone" value="${p?.contact_number||''}" /></div>
+            <div class="form-group"><label>Email</label><input type="email" id="pt-email" value="${p?.email||''}" /></div>
+            <div class="form-group"><label>GST Number</label><input id="pt-gst" value="${p?.gst_number||''}" /></div>
+            <div class="form-group"><label>Address</label><textarea id="pt-addr" style="min-height:60px;">${p?.address||''}</textarea></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="document.getElementById('partner-modal').remove()">Cancel</button>
+          <button class="btn btn-primary" onclick="savePartner('${type}',${id||'null'})">${p?'Update':'Create'}</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function savePartner(type, id) {
+  const errEl = document.getElementById('partner-error');
+  errEl.style.display = 'none';
+  const body = {
+    name: document.getElementById('pt-name').value.trim(),
+    contact_number: document.getElementById('pt-phone').value.trim() || null,
+    email: document.getElementById('pt-email').value.trim() || null,
+    gst_number: document.getElementById('pt-gst').value.trim() || null,
+    address: document.getElementById('pt-addr').value.trim() || null,
+  };
+  try {
+    if (id) await api('PUT', `/${type}s/${id}`, body);
+    else await api('POST', `/${type}s/`, body);
+    document.getElementById('partner-modal').remove();
+    showToast(id ? `${type} updated!` : `${type} created!`);
+    type === 'supplier' ? renderSuppliers() : renderCustomers();
+  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+}
+
+async function deletePartner(type, id, name) {
+  confirm(`Delete ${type}`, `Delete "${name}"?`, async () => {
+    try { await api('DELETE', `/${type}s/${id}`); showToast('Deleted.'); type === 'supplier' ? renderSuppliers() : renderCustomers(); }
+    catch(e) { showToast(e.message, 'error'); }
+  }, 'Delete');
+}
+
+// ─────────────────────────────────────────────
+// PURCHASE ORDERS
+// ─────────────────────────────────────────────
+async function renderPurchaseOrders() {
+  setTopbarActions(`<button class="btn btn-primary" onclick="openPOModal()">+ New Purchase Order</button>`);
+  setContent('<div class="loading"><div class="spinner"></div><br/>Loading…</div>');
+  try {
+    const pos = await api('GET', '/purchase-orders/');
+    _pos = pos;
+    setContent(`
+      <div class="filter-bar">
+        <select id="po-status-filter" onchange="filterPOs()">
+          <option value="">All Statuses</option>
+          <option value="pending">Pending</option><option value="partial">Partial</option>
+          <option value="completed">Completed</option><option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>PO Number</th><th>Supplier</th><th>Warehouse</th><th>Status</th><th>Items</th><th>Created</th><th>Actions</th></tr></thead>
+        <tbody id="po-tbody">${renderPORows(pos)}</tbody>
+      </table></div></div>
+      <div id="po-detail-area"></div>`);
+  } catch(e) { setContent(`<div class="alert alert-error">${e.message}</div>`); }
+}
+
+function renderPORows(pos) {
+  if (!pos.length) return `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">🛒</div><div class="empty-state-text">No purchase orders</div></div></td></tr>`;
+  return pos.map(p => `
+    <tr>
+      <td>${codeBadge(p.po_number)}</td>
+      <td style="font-weight:500;">${p.supplier_name}</td>
+      <td style="font-size:12px;color:var(--slate);">${p.warehouse_name}</td>
+      <td>${badge(p.status)}</td>
+      <td style="font-size:12px;">${p.items.length} item${p.items.length!==1?'s':''}</td>
+      <td style="font-size:12px;color:var(--slate);">${fmtDate(p.created_at)}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="viewPO(${p.id})">👁 View</button>
+        ${p.status !== 'cancelled' && p.status !== 'completed' ? `<button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="cancelPO(${p.id},'${p.po_number}')">✕ Cancel</button>` : ''}
+      </td>
+    </tr>`).join('');
+}
+
+function filterPOs() {
+  const status = document.getElementById('po-status-filter').value;
+  const filtered = status ? _pos.filter(p => p.status === status) : _pos;
+  document.getElementById('po-tbody').innerHTML = renderPORows(filtered);
+}
+
+async function viewPO(id) {
+  try {
+    const po = await api('GET', `/purchase-orders/${id}`);
+    const html = `
+      <div class="modal-overlay open" id="po-view-modal">
+        <div class="modal modal-lg">
+          <div class="modal-header">
+            <span class="modal-title">PO: ${po.po_number}</span>
+            <button class="modal-close" onclick="document.getElementById('po-view-modal').remove()">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="detail-section">
+              <div class="detail-section-title">Details</div>
+              <div class="detail-grid">
+                <div class="detail-item"><label>Status</label><div class="value">${badge(po.status)}</div></div>
+                <div class="detail-item"><label>Supplier</label><div class="value">${po.supplier_name}</div></div>
+                <div class="detail-item"><label>Warehouse</label><div class="value">${po.warehouse_name}</div></div>
+                <div class="detail-item"><label>Created</label><div class="value">${fmtDate(po.created_at)}</div></div>
+              </div>
+            </div>
+            <div class="detail-section">
+              <div class="detail-section-title">Line Items</div>
+              <div class="table-wrap"><table>
+                <thead><tr><th>Code</th><th>Item Name</th><th>Qty Ordered</th><th>Rate</th><th>Total</th></tr></thead>
+                <tbody>
+                  ${po.items.map(i => `<tr>
+                    <td>${codeBadge(i.item_code)}</td>
+                    <td>${i.item_name}</td>
+                    <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${i.ordered_qty}</td>
+                    <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">₹${i.rate}</td>
+                    <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">₹${(parseFloat(i.ordered_qty)*parseFloat(i.rate)).toFixed(2)}</td>
+                  </tr>`).join('')}
+                </tbody>
+              </table></div>
+            </div>
+            ${po.status !== 'cancelled' && po.status !== 'completed' ? `
+            <div class="detail-section">
+              <div class="detail-section-title">Update Status</div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <select id="po-new-status" style="flex:1;">
+                  <option value="pending" ${po.status==='pending'?'selected':''}>Pending</option>
+                  <option value="partial" ${po.status==='partial'?'selected':''}>Partial</option>
+                  <option value="completed" ${po.status==='completed'?'selected':''}>Completed</option>
+                  <option value="cancelled" ${po.status==='cancelled'?'selected':''}>Cancelled</option>
+                </select>
+                <button class="btn btn-primary btn-sm" onclick="updatePOStatus(${po.id})">Update</button>
+              </div>
+            </div>` : ''}
+          </div>
+        </div>
+      </div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function updatePOStatus(id) {
+  const status = document.getElementById('po-new-status').value;
+  try {
+    await api('PATCH', `/purchase-orders/${id}/status`, { status });
+    document.getElementById('po-view-modal').remove();
+    showToast('Status updated!');
+    renderPurchaseOrders();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function cancelPO(id, num) {
+  confirm('Cancel PO', `Cancel PO "${num}"? This cannot be undone.`, async () => {
+    try { await api('DELETE', `/purchase-orders/${id}`); showToast('PO cancelled.'); renderPurchaseOrders(); }
+    catch(e) { showToast(e.message, 'error'); }
+  }, 'Cancel PO');
+}
+
+function openPOModal() {
+  let lineItems = [{ item_id: '', ordered_qty: '', rate: 0 }];
+  function renderLines() {
+    return lineItems.map((li, idx) => `
+      <div class="line-item-row" style="grid-template-columns:2fr 1fr 1fr auto;" id="poli-${idx}">
+        <div class="form-group"><label>Item</label>
+          <select onchange="lineItems[${idx}].item_id=this.value" id="poli-item-${idx}">
+            <option value="">Select item…</option>
+            ${_items.map(i => `<option value="${i.id}" ${li.item_id==i.id?'selected':''}>${i.name} (${i.item_code})</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group"><label>Qty</label><input type="number" value="${li.ordered_qty}" min="0.01" step="0.01" onchange="lineItems[${idx}].ordered_qty=this.value" /></div>
+        <div class="form-group"><label>Rate (₹)</label><input type="number" value="${li.rate||0}" min="0" step="0.01" onchange="lineItems[${idx}].rate=this.value" /></div>
+        <div class="form-group"><label>&nbsp;</label><button class="line-item-remove" onclick="lineItems.splice(${idx},1);refreshPOLines()">✕</button></div>
+      </div>`).join('');
+  }
+  const html = `
+    <div class="modal-overlay open" id="po-modal">
+      <div class="modal modal-lg">
+        <div class="modal-header"><span class="modal-title">New Purchase Order</span>
+          <button class="modal-close" onclick="document.getElementById('po-modal').remove()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div id="po-error" class="alert alert-error" style="display:none;"></div>
+          <div class="form-grid" style="margin-bottom:16px;">
+            <div class="form-group"><label>PO Number *</label><input id="po-num" placeholder="PO-2026-001" /></div>
+            <div class="form-group"><label>Supplier *</label>
+              <select id="po-supplier">
+                <option value="">Select supplier…</option>
+                ${_suppliers.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group span2"><label>Warehouse *</label>
+              <select id="po-warehouse">
+                <option value="">Select warehouse…</option>
+                ${_warehouses.filter(w=>w.is_active).map(w => `<option value="${w.id}">${w.name}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <hr class="divider" />
+          <div class="line-items-header">
+            <span class="line-items-label">Line Items</span>
+            <button class="btn btn-secondary btn-sm" onclick="lineItems.push({item_id:'',ordered_qty:'',rate:0});refreshPOLines()">+ Add Item</button>
+          </div>
+          <div id="po-lines">${renderLines()}</div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="document.getElementById('po-modal').remove()">Cancel</button>
+          <button class="btn btn-primary" onclick="savePO()">Create PO</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  window.lineItems = lineItems;
+  window.refreshPOLines = () => { document.getElementById('po-lines').innerHTML = renderLines(); };
+}
+
+async function savePO() {
+  const errEl = document.getElementById('po-error');
+  errEl.style.display = 'none';
+  const items = window.lineItems.map((li, idx) => ({
+    item_id: parseInt(document.getElementById(`poli-item-${idx}`)?.value || li.item_id),
+    ordered_qty: parseFloat(document.querySelectorAll('#po-lines .line-item-row')[idx]?.querySelectorAll('input')[0]?.value || li.ordered_qty),
+    rate: parseFloat(document.querySelectorAll('#po-lines .line-item-row')[idx]?.querySelectorAll('input')[1]?.value || li.rate || 0),
+  }));
+  const body = {
+    po_number: document.getElementById('po-num').value.trim(),
+    supplier_id: parseInt(document.getElementById('po-supplier').value),
+    warehouse_id: parseInt(document.getElementById('po-warehouse').value),
+    items
+  };
+  try {
+    await api('POST', '/purchase-orders/', body);
+    document.getElementById('po-modal').remove();
+    showToast('Purchase Order created!');
+    renderPurchaseOrders();
+  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+}
+
+// ─────────────────────────────────────────────
+// GRN
+// ─────────────────────────────────────────────
+async function renderGRN() {
+  setTopbarActions(`<button class="btn btn-primary" onclick="openGRNModal()">+ New GRN</button>`);
+  setContent('<div class="loading"><div class="spinner"></div><br/>Loading…</div>');
+  try {
+    const grns = await api('GET', '/grn/');
+    setContent(`
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>GRN Number</th><th>PO Number</th><th>Warehouse</th><th>Received Date</th><th>Items</th><th>Actions</th></tr></thead>
+        <tbody>
+          ${grns.length ? grns.map(g => `<tr>
+            <td>${codeBadge(g.grn_number)}</td>
+            <td style="font-size:12px;color:var(--slate);">${codeBadge(g.po_number)}</td>
+            <td style="font-size:12px;">${g.warehouse_name}</td>
+            <td style="font-size:12px;">${fmtDate(g.received_date)}</td>
+            <td style="font-size:12px;">${g.items.length} item${g.items.length!==1?'s':''}</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="viewGRN(${g.id})">👁 View</button></td>
+          </tr>`).join('') : `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">📥</div><div class="empty-state-text">No GRNs yet</div><div class="empty-state-sub">Create a GRN against a Purchase Order</div></div></td></tr>`}
+        </tbody>
+      </table></div></div>`);
+  } catch(e) { setContent(`<div class="alert alert-error">${e.message}</div>`); }
+}
+
+async function viewGRN(id) {
+  const g = await api('GET', `/grn/${id}`);
+  const html = `
+    <div class="modal-overlay open" id="grn-view">
+      <div class="modal modal-lg">
+        <div class="modal-header"><span class="modal-title">GRN: ${g.grn_number}</span>
+          <button class="modal-close" onclick="document.getElementById('grn-view').remove()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="detail-grid" style="margin-bottom:20px;">
+            <div class="detail-item"><label>PO Number</label><div class="value">${codeBadge(g.po_number)}</div></div>
+            <div class="detail-item"><label>Warehouse</label><div class="value">${g.warehouse_name}</div></div>
+            <div class="detail-item"><label>Received Date</label><div class="value">${fmtDate(g.received_date)}</div></div>
+          </div>
+          <div class="detail-section-title">Line Items</div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Code</th><th>Item</th><th>Received</th><th>Accepted</th><th>Rejected</th><th>Batch</th></tr></thead>
+            <tbody>
+              ${g.items.map(i => `<tr>
+                <td>${codeBadge(i.item_code)}</td><td>${i.item_name}</td>
+                <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${i.received_qty}</td>
+                <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--emerald);">${i.accepted_qty}</td>
+                <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:${parseFloat(i.rejected_qty)>0?'var(--red)':'var(--slate)'};">${i.rejected_qty}</td>
+                <td style="font-size:12px;">${i.batch_number||'—'}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function openGRNModal() {
+  const activePOs = _pos.filter(p => p.status !== 'cancelled' && p.status !== 'completed');
+  let grnLines = [];
+  let selectedPO = null;
+
+  function updateLines(poId) {
+    selectedPO = _pos.find(p => p.id == poId);
+    if (!selectedPO) { grnLines = []; return; }
+    grnLines = selectedPO.items.map(i => ({ item_id: i.item_id, item_name: i.item_name, item_code: i.item_code, received_qty: '', accepted_qty: '', rejected_qty: 0, batch_number: '' }));
+    document.getElementById('grn-lines').innerHTML = renderGRNLines();
+  }
+
+  function renderGRNLines() {
+    if (!grnLines.length) return '<p style="color:var(--slate);font-size:13px;">Select a PO to load items.</p>';
+    return grnLines.map((li, idx) => `
+      <div class="line-item-row" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr;">
+        <div class="form-group"><label>${codeBadge(li.item_code)} ${li.item_name}</label></div>
+        <div class="form-group"><label>Received</label><input type="number" id="grn-recv-${idx}" value="${li.received_qty}" min="0.01" step="0.01" oninput="autoCalcGRN(${idx})" /></div>
+        <div class="form-group"><label>Accepted</label><input type="number" id="grn-acc-${idx}" value="${li.accepted_qty}" min="0" step="0.01" oninput="autoCalcGRN2(${idx})" /></div>
+        <div class="form-group"><label>Rejected</label><input type="number" id="grn-rej-${idx}" value="${li.rejected_qty}" min="0" step="0.01" readonly style="background:var(--slate-100);" /></div>
+        <div class="form-group"><label>Batch#</label><input id="grn-batch-${idx}" value="${li.batch_number}" /></div>
+      </div>`).join('');
+  }
+
+  const html = `
+    <div class="modal-overlay open" id="grn-modal">
+      <div class="modal modal-lg">
+        <div class="modal-header"><span class="modal-title">New Goods Receipt Note</span>
+          <button class="modal-close" onclick="document.getElementById('grn-modal').remove()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="info-box">ℹ️ Only <strong>accepted quantity</strong> gets added to stock. Rejected material is recorded for traceability only.</div>
+          <div id="grn-error" class="alert alert-error" style="display:none;"></div>
+          <div class="form-grid" style="margin-bottom:16px;">
+            <div class="form-group"><label>GRN Number *</label><input id="grn-num" placeholder="GRN-2026-001" /></div>
+            <div class="form-group"><label>Received Date *</label><input type="date" id="grn-date" value="${new Date().toISOString().split('T')[0]}" /></div>
+            <div class="form-group span2"><label>Purchase Order *</label>
+              <select id="grn-po" onchange="updateLines(this.value)">
+                <option value="">Select PO…</option>
+                ${activePOs.map(p => `<option value="${p.id}">${p.po_number} — ${p.supplier_name}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <hr class="divider" />
+          <div class="line-items-label" style="margin-bottom:10px;">Items (from selected PO)</div>
+          <div id="grn-lines"><p style="color:var(--slate);font-size:13px;">Select a PO to load items.</p></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="document.getElementById('grn-modal').remove()">Cancel</button>
+          <button class="btn btn-primary" onclick="saveGRN()">Create GRN</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  window.grnLines = grnLines;
+  window.updateLines = updateLines;
+  window.renderGRNLines = renderGRNLines;
+  window.autoCalcGRN = (idx) => {
+    const recv = parseFloat(document.getElementById(`grn-recv-${idx}`).value) || 0;
+    document.getElementById(`grn-acc-${idx}`).value = recv;
+    document.getElementById(`grn-rej-${idx}`).value = 0;
+  };
+  window.autoCalcGRN2 = (idx) => {
+    const recv = parseFloat(document.getElementById(`grn-recv-${idx}`)?.value) || 0;
+    const acc = parseFloat(document.getElementById(`grn-acc-${idx}`).value) || 0;
+    document.getElementById(`grn-rej-${idx}`).value = Math.max(0, recv - acc).toFixed(2);
+  };
+}
+
+async function saveGRN() {
+  const errEl = document.getElementById('grn-error');
+  errEl.style.display = 'none';
+  const poId = parseInt(document.getElementById('grn-po').value);
+  const po = _pos.find(p => p.id === poId);
+  if (!po) { errEl.textContent = 'Please select a PO.'; errEl.style.display = 'block'; return; }
+  const rows = document.querySelectorAll('#grn-lines .line-item-row');
+  const items = po.items.map((poi, idx) => {
+    const recv = parseFloat(document.getElementById(`grn-recv-${idx}`)?.value) || 0;
+    const acc = parseFloat(document.getElementById(`grn-acc-${idx}`)?.value) || 0;
+    const rej = parseFloat(document.getElementById(`grn-rej-${idx}`)?.value) || 0;
+    return { item_id: poi.item_id, received_qty: recv, accepted_qty: acc, rejected_qty: rej, batch_number: document.getElementById(`grn-batch-${idx}`)?.value || null };
+  }).filter(i => i.received_qty > 0);
+  const body = { grn_number: document.getElementById('grn-num').value.trim(), po_id: poId, received_date: document.getElementById('grn-date').value, items };
+  try {
+    await api('POST', '/grn/', body);
+    document.getElementById('grn-modal').remove();
+    showToast('GRN created! Stock updated.');
+    renderGRN();
+  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+}
+
+// ─────────────────────────────────────────────
+// STOCK
+// ─────────────────────────────────────────────
+async function renderStock() {
+  setTopbarActions('');
+  setContent(`
+    <div class="tab-bar">
+      <div class="tab-item active" id="tab-ledger" onclick="switchStockTab('ledger')">📋 Stock Ledger</div>
+      <div class="tab-item" id="tab-current" onclick="switchStockTab('current')">📊 Current Stock</div>
+    </div>
+    <div id="stock-tab-content">
+      <div class="loading"><div class="spinner"></div><br/>Loading…</div>
+    </div>`);
+  loadStockLedger();
+}
+
+function switchStockTab(tab) {
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  if (tab === 'ledger') loadStockLedger();
+  else loadCurrentStock();
+}
+
+async function loadStockLedger() {
+  const itemFilter = document.getElementById('stock-item-filter')?.value || '';
+  const whFilter = document.getElementById('stock-wh-filter')?.value || '';
+  let url = '/stock/ledger?';
+  if (itemFilter) url += `item_id=${itemFilter}&`;
+  if (whFilter) url += `warehouse_id=${whFilter}&`;
+  const el = document.getElementById('stock-tab-content');
+  el.innerHTML = `
+    <div class="filter-bar">
+      <select id="stock-item-filter" onchange="loadStockLedger()">
+        <option value="">All Items</option>
+        ${_items.map(i => `<option value="${i.id}" ${itemFilter==i.id?'selected':''}>${i.name}</option>`).join('')}
+      </select>
+      <select id="stock-wh-filter" onchange="loadStockLedger()">
+        <option value="">All Warehouses</option>
+        ${_warehouses.map(w => `<option value="${w.id}" ${whFilter==w.id?'selected':''}>${w.name}</option>`).join('')}
+      </select>
+    </div>
+    <div class="loading"><div class="spinner"></div><br/>Loading ledger…</div>`;
+  try {
+    const entries = await api('GET', url);
+    const typeColor = { GRN_IN: 'var(--emerald)', FG_RECEIPT: 'var(--emerald)', DISPATCH_OUT: 'var(--red)', PRODUCTION_ISSUE: 'var(--red)', WASTAGE: 'var(--amber)', STOCK_TRANSFER_IN: 'var(--blue)', STOCK_TRANSFER_OUT: 'var(--blue)' };
+    el.innerHTML = `
+      <div class="filter-bar">
+        <select id="stock-item-filter" onchange="loadStockLedger()">
+          <option value="">All Items</option>
+          ${_items.map(i => `<option value="${i.id}" ${itemFilter==i.id?'selected':''}>${i.name}</option>`).join('')}
+        </select>
+        <select id="stock-wh-filter" onchange="loadStockLedger()">
+          <option value="">All Warehouses</option>
+          ${_warehouses.map(w => `<option value="${w.id}" ${whFilter==w.id?'selected':''}>${w.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>Date</th><th>Item</th><th>Warehouse</th><th>Type</th><th>Qty</th><th>Balance After</th><th>Ref</th></tr></thead>
+        <tbody>
+          ${entries.length ? entries.map(e => `<tr>
+            <td style="font-size:12px;">${fmtDate(e.transaction_date)}</td>
+            <td><span style="font-weight:500;">${e.item_name}</span><br/>${codeBadge(e.item_code)}</td>
+            <td style="font-size:12px;">${e.warehouse_name}</td>
+            <td><span class="badge" style="background:${typeColor[e.transaction_type]||'var(--slate-200)'};color:white;font-size:10px;">${e.transaction_type}</span></td>
+            <td style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:${parseFloat(e.quantity)>=0?'var(--emerald)':'var(--red)'};">${parseFloat(e.quantity)>=0?'+':''}${e.quantity}</td>
+            <td style="font-family:'JetBrains Mono',monospace;font-size:13px;">${e.balance_after}</td>
+            <td style="font-size:11px;color:var(--slate);">${e.reference_type||'—'} #${e.reference_id||'—'}</td>
+          </tr>`).join('') : '<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">No ledger entries yet</div><div class="empty-state-sub">Entries appear after GRNs, production completions, or dispatches</div></div></td></tr>'}
+        </tbody>
+      </table></div></div>`;
+  } catch(e) { el.innerHTML = `<div class="alert alert-error">${e.message}</div>`; }
+}
+
+async function loadCurrentStock() {
+  document.getElementById('stock-tab-content').innerHTML = `
+    <div class="filter-bar">
+      <select id="cs-item">
+        <option value="">Select item…</option>
+        ${_items.map(i => `<option value="${i.id}">${i.name} (${i.item_code})</option>`).join('')}
+      </select>
+      <select id="cs-wh">
+        <option value="">Select warehouse…</option>
+        ${_warehouses.map(w => `<option value="${w.id}">${w.name}</option>`).join('')}
+      </select>
+      <button class="btn btn-primary" onclick="checkCurrentStock()">Check Stock</button>
+    </div>
+    <div id="cs-result"></div>`;
+}
+
+async function checkCurrentStock() {
+  const itemId = document.getElementById('cs-item').value;
+  const whId = document.getElementById('cs-wh').value;
+  if (!itemId || !whId) { showToast('Please select both item and warehouse.', 'error'); return; }
+  try {
+    const r = await api('GET', `/stock/current?item_id=${itemId}&warehouse_id=${whId}`);
+    const low = r.current_stock < parseFloat(_items.find(i=>i.id==itemId)?.min_stock_level||0);
+    document.getElementById('cs-result').innerHTML = `
+      <div class="card" style="max-width:400px;margin-top:16px;">
+        <div class="card-body">
+          <div style="font-size:13px;color:var(--slate);margin-bottom:8px;">${r.item_name} ${codeBadge(r.item_code)}</div>
+          <div style="font-size:13px;color:var(--slate);margin-bottom:12px;">📍 ${r.warehouse_name}</div>
+          <div style="font-size:36px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${low?'var(--red)':'var(--emerald)'};">${r.current_stock}</div>
+          <div style="font-size:13px;color:var(--slate);margin-top:4px;">${low?'⚠️ Below minimum stock level':'✓ Stock OK'}</div>
+        </div>
+      </div>`;
+  } catch(e) { document.getElementById('cs-result').innerHTML = `<div class="alert alert-error">${e.message}</div>`; }
+}
+
+// ─────────────────────────────────────────────
+// BOM
+// ─────────────────────────────────────────────
+async function renderBOM() {
+  setTopbarActions(`<button class="btn btn-primary" onclick="openBOMModal()">+ New BOM</button>`);
+  setContent('<div class="loading"><div class="spinner"></div><br/>Loading…</div>');
+  try {
+    const boms = await api('GET', '/boms/?active_only=false');
+    _boms = boms;
+    setContent(`
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>Finished Item</th><th>Version</th><th>Raw Materials</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          ${boms.length ? boms.map(b => `<tr>
+            <td><span style="font-weight:500;">${b.finished_item_name}</span><br/>${codeBadge(b.finished_item_code)}</td>
+            <td><span class="code-tag">v${b.version}</span></td>
+            <td style="font-size:12px;">${b.bom_items.length} material${b.bom_items.length!==1?'s':''}</td>
+            <td>${b.is_active ? '<span class="badge badge-active">Active</span>' : '<span class="badge badge-inactive">Inactive</span>'}</td>
+            <td>
+              <button class="btn btn-ghost btn-sm" onclick="viewBOM(${b.id})">👁 View</button>
+              ${b.is_active ? `<button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="deactivateBOM(${b.id})">Deactivate</button>` : ''}
+            </td>
+          </tr>`).join('') : `<tr><td colspan="5"><div class="empty-state"><div class="empty-state-icon">🔧</div><div class="empty-state-text">No BOMs yet</div><div class="empty-state-sub">Create a Bill of Materials recipe for your finished products</div></div></td></tr>`}
+        </tbody>
+      </table></div></div>`);
+  } catch(e) { setContent(`<div class="alert alert-error">${e.message}</div>`); }
+}
+
+async function viewBOM(id) {
+  const b = _boms.find(x => x.id === id) || await api('GET', `/boms/${id}`);
+  const html = `
+    <div class="modal-overlay open" id="bom-view">
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <span class="modal-title">BOM: ${b.finished_item_name} v${b.version}</span>
+          <button class="modal-close" onclick="document.getElementById('bom-view').remove()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="detail-grid" style="margin-bottom:20px;">
+            <div class="detail-item"><label>Item Code</label><div class="value">${codeBadge(b.finished_item_code)}</div></div>
+            <div class="detail-item"><label>Version</label><div class="value">v${b.version}</div></div>
+            <div class="detail-item"><label>Status</label><div class="value">${b.is_active ? '<span class="badge badge-active">Active</span>' : '<span class="badge badge-inactive">Inactive</span>'}</div></div>
+          </div>
+          <div class="detail-section-title">Raw Materials Required (per 1 unit of finished item)</div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Code</th><th>Raw Material</th><th>Qty Required</th><th>Unit</th></tr></thead>
+            <tbody>
+              ${b.bom_items.map(i => `<tr>
+                <td>${codeBadge(i.raw_item_code)}</td>
+                <td>${i.raw_item_name}</td>
+                <td style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;">${i.qty_required}</td>
+                <td style="font-size:12px;color:var(--slate);">${i.unit}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function deactivateBOM(id) {
+  confirm('Deactivate BOM', 'Deactivate this BOM? It will no longer be used for new production orders.', async () => {
+    try { await api('PATCH', `/boms/${id}/deactivate`); showToast('BOM deactivated.'); renderBOM(); }
+    catch(e) { showToast(e.message, 'error'); }
+  }, 'Deactivate');
+}
+
+function openBOMModal() {
+  const finishedItems = _items.filter(i => i.category === 'finished_good' || i.category === 'semi_finished');
+  const rawItems = _items.filter(i => i.category === 'raw_material' || i.category === 'semi_finished');
+  let bomLines = [{ raw_item_id: '', qty_required: '' }];
+
+  function renderBOMLines() {
+    return bomLines.map((li, idx) => `
+      <div class="line-item-row" style="grid-template-columns:3fr 1fr auto;" id="bomli-${idx}">
+        <div class="form-group"><label>Raw Material</label>
+          <select id="bomli-item-${idx}">
+            <option value="">Select…</option>
+            ${rawItems.map(i => `<option value="${i.id}" ${li.raw_item_id==i.id?'selected':''}>${i.name} (${i.item_code})</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group"><label>Qty / unit</label><input type="number" id="bomli-qty-${idx}" value="${li.qty_required}" min="0.0001" step="0.0001" /></div>
+        <div class="form-group"><label>&nbsp;</label><button class="line-item-remove" onclick="bomLines.splice(${idx},1);refreshBOMLines()">✕</button></div>
+      </div>`).join('');
+  }
+
+  const html = `
+    <div class="modal-overlay open" id="bom-modal">
+      <div class="modal modal-lg">
+        <div class="modal-header"><span class="modal-title">New BOM</span>
+          <button class="modal-close" onclick="document.getElementById('bom-modal').remove()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="info-box">ℹ️ Creating a new BOM for a finished item will automatically deactivate the existing active BOM for that item.</div>
+          <div id="bom-error" class="alert alert-error" style="display:none;"></div>
+          <div class="form-grid" style="margin-bottom:16px;">
+            <div class="form-group span2"><label>Finished / Semi-Finished Item *</label>
+              <select id="bom-item">
+                <option value="">Select item…</option>
+                ${finishedItems.map(i => `<option value="${i.id}">${i.name} (${i.item_code})</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group"><label>Version</label><input id="bom-ver" value="1.0" /></div>
+          </div>
+          <hr class="divider" />
+          <div class="line-items-header">
+            <span class="line-items-label">Raw Materials</span>
+            <button class="btn btn-secondary btn-sm" onclick="bomLines.push({raw_item_id:'',qty_required:''});refreshBOMLines()">+ Add Material</button>
+          </div>
+          <div id="bom-lines">${renderBOMLines()}</div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="document.getElementById('bom-modal').remove()">Cancel</button>
+          <button class="btn btn-primary" onclick="saveBOM()">Create BOM</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  window.bomLines = bomLines;
+  window.refreshBOMLines = () => { document.getElementById('bom-lines').innerHTML = renderBOMLines(); };
+}
+
+async function saveBOM() {
+  const errEl = document.getElementById('bom-error');
+  errEl.style.display = 'none';
+  const n = window.bomLines.length;
+  const bom_items = Array.from({length: n}, (_, idx) => ({
+    raw_item_id: parseInt(document.getElementById(`bomli-item-${idx}`)?.value),
+    qty_required: parseFloat(document.getElementById(`bomli-qty-${idx}`)?.value),
+  })).filter(i => i.raw_item_id && i.qty_required > 0);
+  const body = { finished_item_id: parseInt(document.getElementById('bom-item').value), version: document.getElementById('bom-ver').value.trim(), bom_items };
+  try {
+    await api('POST', '/boms/', body);
+    document.getElementById('bom-modal').remove();
+    showToast('BOM created!');
+    renderBOM();
+  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+}
+
+// ─────────────────────────────────────────────
+// PRODUCTION ORDERS
+// ─────────────────────────────────────────────
+async function renderProductionOrders() {
+  setTopbarActions(`<button class="btn btn-primary" onclick="openProdModal()">+ New Production Order</button>`);
+  setContent('<div class="loading"><div class="spinner"></div><br/>Loading…</div>');
+  try {
+    const orders = await api('GET', '/production-orders/');
+    setContent(`
+      <div class="filter-bar">
+        <select id="prod-status-filter" onchange="filterProds()">
+          <option value="">All Statuses</option>
+          <option value="planned">Planned</option><option value="in_progress">In Progress</option>
+          <option value="completed">Completed</option><option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>Order #</th><th>Finished Item</th><th>Warehouse</th><th>Planned Qty</th><th>Actual Qty</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="prod-tbody">${renderProdRows(orders)}</tbody>
+      </table></div></div>`);
+    window._prodOrders = orders;
+  } catch(e) { setContent(`<div class="alert alert-error">${e.message}</div>`); }
+}
+
+function renderProdRows(orders) {
+  if (!orders.length) return `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">⚙️</div><div class="empty-state-text">No production orders</div></div></td></tr>`;
+  return orders.map(o => `<tr>
+    <td>${codeBadge(o.order_number)}</td>
+    <td style="font-weight:500;">${o.finished_item_name}</td>
+    <td style="font-size:12px;color:var(--slate);">${o.warehouse_name}</td>
+    <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${o.planned_qty}</td>
+    <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${o.actual_qty||'—'}</td>
+    <td>${badge(o.status)}</td>
+    <td>
+      <button class="btn btn-ghost btn-sm" onclick="viewProd(${o.id})">👁 View</button>
+      ${o.status === 'planned' ? `<button class="btn btn-ghost btn-sm" style="color:var(--blue);" onclick="updateProdStatus(${o.id},'in_progress')">▶ Start</button>` : ''}
+      ${o.status === 'in_progress' ? `<button class="btn btn-success btn-sm" onclick="openCompleteModal(${o.id})">✓ Complete</button>` : ''}
+      ${(o.status === 'planned' || o.status === 'in_progress') ? `<button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="updateProdStatus(${o.id},'cancelled')">✕ Cancel</button>` : ''}
+    </td>
+  </tr>`).join('');
+}
+
+function filterProds() {
+  const s = document.getElementById('prod-status-filter').value;
+  const filtered = s ? (window._prodOrders||[]).filter(o => o.status === s) : (window._prodOrders||[]);
+  document.getElementById('prod-tbody').innerHTML = renderProdRows(filtered);
+}
+
+async function updateProdStatus(id, status) {
+  try {
+    await api('PATCH', `/production-orders/${id}/status`, { status });
+    showToast(`Status updated to ${status}`);
+    renderProductionOrders();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function viewProd(id) {
+  const o = await api('GET', `/production-orders/${id}`);
+  const html = `
+    <div class="modal-overlay open" id="prod-view">
+      <div class="modal modal-lg">
+        <div class="modal-header"><span class="modal-title">Production Order: ${o.order_number}</span>
+          <button class="modal-close" onclick="document.getElementById('prod-view').remove()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="detail-grid" style="margin-bottom:20px;">
+            <div class="detail-item"><label>Status</label><div class="value">${badge(o.status)}</div></div>
+            <div class="detail-item"><label>Finished Item</label><div class="value">${o.finished_item_name}</div></div>
+            <div class="detail-item"><label>Warehouse</label><div class="value">${o.warehouse_name}</div></div>
+            <div class="detail-item"><label>Planned Qty</label><div class="value" style="font-family:'JetBrains Mono',monospace;">${o.planned_qty}</div></div>
+            <div class="detail-item"><label>Actual Qty</label><div class="value" style="font-family:'JetBrains Mono',monospace;">${o.actual_qty||'—'}</div></div>
+            <div class="detail-item"><label>Start Date</label><div class="value">${fmt(o.start_date)}</div></div>
+            <div class="detail-item"><label>End Date</label><div class="value">${fmt(o.end_date)}</div></div>
+          </div>
+          ${o.material_issues.length ? `
+            <div class="detail-section-title">Material Issues</div>
+            <div class="table-wrap"><table>
+              <thead><tr><th>Item</th><th>Issued Qty</th></tr></thead>
+              <tbody>${o.material_issues.map(m=>`<tr><td>${m.item_name} ${codeBadge(m.item_code)}</td><td style="font-family:'JetBrains Mono',monospace;">${m.issued_qty}</td></tr>`).join('')}</tbody>
+            </table></div>` : ''}
+          ${o.fg_receipts.length ? `
+            <div class="detail-section-title" style="margin-top:16px;">Finished Goods Receipt</div>
+            <div class="table-wrap"><table>
+              <thead><tr><th>Item</th><th>Received Qty</th></tr></thead>
+              <tbody>${o.fg_receipts.map(f=>`<tr><td>${f.item_name} ${codeBadge(f.item_code)}</td><td style="font-family:'JetBrains Mono',monospace;">${f.received_qty}</td></tr>`).join('')}</tbody>
+            </table></div>` : ''}
+          ${o.wastage_records.length ? `
+            <div class="detail-section-title" style="margin-top:16px;">Wastage Records</div>
+            <div class="table-wrap"><table>
+              <thead><tr><th>Item</th><th>Wasted Qty</th><th>Reason</th></tr></thead>
+              <tbody>${o.wastage_records.map(w=>`<tr><td>${w.item_name}</td><td style="font-family:'JetBrains Mono',monospace;">${w.wasted_qty}</td><td style="font-size:12px;">${w.reason||'—'}</td></tr>`).join('')}</tbody>
+            </table></div>` : ''}
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function openProdModal() {
+  const activeBOMs = _boms.filter(b => b.is_active);
+  const html = `
+    <div class="modal-overlay open" id="prod-modal">
+      <div class="modal">
+        <div class="modal-header"><span class="modal-title">New Production Order</span>
+          <button class="modal-close" onclick="document.getElementById('prod-modal').remove()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div id="prod-error" class="alert alert-error" style="display:none;"></div>
+          <div class="form-grid">
+            <div class="form-group span2"><label>Order Number *</label><input id="prod-num" placeholder="PROD-2026-001" /></div>
+            <div class="form-group span2"><label>BOM (Bill of Materials) *</label>
+              <select id="prod-bom">
+                <option value="">Select BOM…</option>
+                ${activeBOMs.map(b => `<option value="${b.id}">${b.finished_item_name} v${b.version}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group span2"><label>Warehouse *</label>
+              <select id="prod-wh">
+                <option value="">Select warehouse…</option>
+                ${_warehouses.filter(w=>w.is_active).map(w => `<option value="${w.id}">${w.name}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group"><label>Planned Quantity *</label><input type="number" id="prod-qty" placeholder="100" min="0.01" step="0.01" /></div>
+            <div class="form-group"><label>Start Date</label><input type="date" id="prod-start" /></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="document.getElementById('prod-modal').remove()">Cancel</button>
+          <button class="btn btn-primary" onclick="saveProd()">Create Order</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function saveProd() {
+  const errEl = document.getElementById('prod-error');
+  errEl.style.display = 'none';
+  const body = {
+    order_number: document.getElementById('prod-num').value.trim(),
+    bom_id: parseInt(document.getElementById('prod-bom').value),
+    warehouse_id: parseInt(document.getElementById('prod-wh').value),
+    planned_qty: parseFloat(document.getElementById('prod-qty').value),
+    start_date: document.getElementById('prod-start').value || null,
+  };
+  try {
+    await api('POST', '/production-orders/', body);
+    document.getElementById('prod-modal').remove();
+    showToast('Production order created!');
+    renderProductionOrders();
+  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+}
+
+function openCompleteModal(id) {
+  let wastageLines = [];
+  function renderWastLines() {
+    if (!wastageLines.length) return '<p style="font-size:12px;color:var(--slate);">No wastage recorded. <button class="btn btn-ghost btn-sm" onclick="wastageLines.push({item_id:\'\',wasted_qty:\'\',reason:\'\'});refreshWastLines()">+ Add Wastage</button></p>';
+    return wastageLines.map((w, idx) => `
+      <div class="line-item-row" style="grid-template-columns:2fr 1fr 2fr auto;" id="wl-${idx}">
+        <div class="form-group"><label>Item</label>
+          <select id="wl-item-${idx}">
+            <option value="">Select…</option>
+            ${_items.filter(i=>i.category==='raw_material').map(i=>`<option value="${i.id}">${i.name}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group"><label>Wasted Qty</label><input type="number" id="wl-qty-${idx}" min="0.01" step="0.01" /></div>
+        <div class="form-group"><label>Reason</label><input id="wl-reason-${idx}" placeholder="Optional" /></div>
+        <div class="form-group"><label>&nbsp;</label><button class="line-item-remove" onclick="wastageLines.splice(${idx},1);refreshWastLines()">✕</button></div>
+      </div>`).join('') +
+      `<button class="btn btn-ghost btn-sm" style="margin-top:4px;" onclick="wastageLines.push({item_id:'',wasted_qty:'',reason:''});refreshWastLines()">+ Add Wastage Line</button>`;
+  }
+  const html = `
+    <div class="modal-overlay open" id="complete-modal">
+      <div class="modal modal-lg">
+        <div class="modal-header"><span class="modal-title">Complete Production Order</span>
+          <button class="modal-close" onclick="document.getElementById('complete-modal').remove()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-warning">⚠️ This action will deduct raw materials from stock and add finished goods. It cannot be undone.</div>
+          <div id="complete-error" class="alert alert-error" style="display:none;"></div>
+          <div class="form-grid" style="margin-bottom:16px;">
+            <div class="form-group"><label>Actual Qty Produced *</label><input type="number" id="comp-qty" placeholder="98" min="0.01" step="0.01" /></div>
+            <div class="form-group"><label>End Date</label><input type="date" id="comp-end" value="${new Date().toISOString().split('T')[0]}" /></div>
+          </div>
+          <hr class="divider" />
+          <div class="line-items-label" style="margin-bottom:10px;">Wastage (optional)</div>
+          <div id="wastage-lines">${renderWastLines()}</div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="document.getElementById('complete-modal').remove()">Cancel</button>
+          <button class="btn btn-success" onclick="completeProd(${id})">✓ Mark Complete</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  window.wastageLines = wastageLines;
+  window.refreshWastLines = () => { document.getElementById('wastage-lines').innerHTML = renderWastLines(); };
+}
+
+async function completeProd(id) {
+  const errEl = document.getElementById('complete-error');
+  errEl.style.display = 'none';
+  const n = window.wastageLines.length;
+  const wastage = Array.from({length: n}, (_, idx) => ({
+    item_id: parseInt(document.getElementById(`wl-item-${idx}`)?.value),
+    wasted_qty: parseFloat(document.getElementById(`wl-qty-${idx}`)?.value),
+    reason: document.getElementById(`wl-reason-${idx}`)?.value || null,
+  })).filter(w => w.item_id && w.wasted_qty > 0);
+  const body = {
+    actual_qty: parseFloat(document.getElementById('comp-qty').value),
+    end_date: document.getElementById('comp-end').value || null,
+    wastage,
+  };
+  try {
+    await api('POST', `/production-orders/${id}/complete`, body);
+    document.getElementById('complete-modal').remove();
+    showToast('Production order completed! Stock updated.');
+    renderProductionOrders();
+  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+}
+
+// ─────────────────────────────────────────────
+// SALES ORDERS
+// ─────────────────────────────────────────────
+async function renderSalesOrders() {
+  setTopbarActions(`<button class="btn btn-primary" onclick="openSOModal()">+ New Sales Order</button>`);
+  setContent('<div class="loading"><div class="spinner"></div><br/>Loading…</div>');
+  try {
+    const sos = await api('GET', '/sales-orders/');
+    _sos = sos;
+    setContent(`
+      <div class="filter-bar">
+        <select id="so-status-filter" onchange="filterSOs()">
+          <option value="">All Statuses</option>
+          <option value="pending">Pending</option><option value="partial">Partial</option>
+          <option value="completed">Completed</option><option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>SO Number</th><th>Customer</th><th>Warehouse</th><th>Status</th><th>Items</th><th>Created</th><th>Actions</th></tr></thead>
+        <tbody id="so-tbody">${renderSORows(sos)}</tbody>
+      </table></div></div>`);
+    window._soOrders = sos;
+  } catch(e) { setContent(`<div class="alert alert-error">${e.message}</div>`); }
+}
+
+function renderSORows(sos) {
+  if (!sos.length) return `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">🧾</div><div class="empty-state-text">No sales orders</div></div></td></tr>`;
+  return sos.map(s => `<tr>
+    <td>${codeBadge(s.so_number)}</td>
+    <td style="font-weight:500;">${s.customer_name}</td>
+    <td style="font-size:12px;color:var(--slate);">${s.warehouse_name}</td>
+    <td>${badge(s.status)}</td>
+    <td style="font-size:12px;">${s.items.length} item${s.items.length!==1?'s':''}</td>
+    <td style="font-size:12px;color:var(--slate);">${fmtDate(s.created_at)}</td>
+    <td>
+      <button class="btn btn-ghost btn-sm" onclick="viewSO(${s.id})">👁 View</button>
+      ${s.status !== 'cancelled' && s.status !== 'completed' ? `<button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="cancelSO(${s.id},'${s.so_number}')">✕ Cancel</button>` : ''}
+    </td>
+  </tr>`).join('');
+}
+
+function filterSOs() {
+  const s = document.getElementById('so-status-filter').value;
+  const filtered = s ? (window._soOrders||[]).filter(o => o.status === s) : (window._soOrders||[]);
+  document.getElementById('so-tbody').innerHTML = renderSORows(filtered);
+}
+
+async function viewSO(id) {
+  const so = await api('GET', `/sales-orders/${id}`);
+  const html = `
+    <div class="modal-overlay open" id="so-view">
+      <div class="modal modal-lg">
+        <div class="modal-header"><span class="modal-title">SO: ${so.so_number}</span>
+          <button class="modal-close" onclick="document.getElementById('so-view').remove()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="detail-grid" style="margin-bottom:20px;">
+            <div class="detail-item"><label>Status</label><div class="value">${badge(so.status)}</div></div>
+            <div class="detail-item"><label>Customer</label><div class="value">${so.customer_name}</div></div>
+            <div class="detail-item"><label>Warehouse</label><div class="value">${so.warehouse_name}</div></div>
+            <div class="detail-item"><label>Created</label><div class="value">${fmtDate(so.created_at)}</div></div>
+          </div>
+          <div class="detail-section-title">Line Items</div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Code</th><th>Item</th><th>Qty Ordered</th><th>Rate</th><th>Total</th></tr></thead>
+            <tbody>
+              ${so.items.map(i=>`<tr>
+                <td>${codeBadge(i.item_code)}</td><td>${i.item_name}</td>
+                <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${i.ordered_qty}</td>
+                <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">₹${i.rate}</td>
+                <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">₹${(parseFloat(i.ordered_qty)*parseFloat(i.rate)).toFixed(2)}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function cancelSO(id, num) {
+  confirm('Cancel SO', `Cancel Sales Order "${num}"?`, async () => {
+    try { await api('DELETE', `/sales-orders/${id}`); showToast('Sales Order cancelled.'); renderSalesOrders(); }
+    catch(e) { showToast(e.message, 'error'); }
+  }, 'Cancel SO');
+}
+
+function openSOModal() {
+  let soLines = [{ item_id: '', ordered_qty: '', rate: 0 }];
+  function renderSOLines() {
+    return soLines.map((li, idx) => `
+      <div class="line-item-row" style="grid-template-columns:2fr 1fr 1fr auto;" id="soli-${idx}">
+        <div class="form-group"><label>Item</label>
+          <select id="soli-item-${idx}">
+            <option value="">Select item…</option>
+            ${_items.filter(i=>i.category==='finished_good').map(i=>`<option value="${i.id}">${i.name} (${i.item_code})</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group"><label>Qty</label><input type="number" id="soli-qty-${idx}" value="${li.ordered_qty}" min="0.01" step="0.01" /></div>
+        <div class="form-group"><label>Rate (₹)</label><input type="number" id="soli-rate-${idx}" value="${li.rate||0}" min="0" step="0.01" /></div>
+        <div class="form-group"><label>&nbsp;</label><button class="line-item-remove" onclick="soLines.splice(${idx},1);refreshSOLines()">✕</button></div>
+      </div>`).join('');
+  }
+  const html = `
+    <div class="modal-overlay open" id="so-modal">
+      <div class="modal modal-lg">
+        <div class="modal-header"><span class="modal-title">New Sales Order</span>
+          <button class="modal-close" onclick="document.getElementById('so-modal').remove()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div id="so-error" class="alert alert-error" style="display:none;"></div>
+          <div class="form-grid" style="margin-bottom:16px;">
+            <div class="form-group"><label>SO Number *</label><input id="so-num" placeholder="SO-2026-001" /></div>
+            <div class="form-group"><label>Customer *</label>
+              <select id="so-customer">
+                <option value="">Select customer…</option>
+                ${_customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group span2"><label>Warehouse *</label>
+              <select id="so-warehouse">
+                <option value="">Select warehouse…</option>
+                ${_warehouses.filter(w=>w.is_active).map(w=>`<option value="${w.id}">${w.name}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <hr class="divider" />
+          <div class="line-items-header">
+            <span class="line-items-label">Line Items (Finished Goods only)</span>
+            <button class="btn btn-secondary btn-sm" onclick="soLines.push({item_id:'',ordered_qty:'',rate:0});refreshSOLines()">+ Add Item</button>
+          </div>
+          <div id="so-lines">${renderSOLines()}</div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="document.getElementById('so-modal').remove()">Cancel</button>
+          <button class="btn btn-primary" onclick="saveSO()">Create SO</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  window.soLines = soLines;
+  window.refreshSOLines = () => { document.getElementById('so-lines').innerHTML = renderSOLines(); };
+}
+
+async function saveSO() {
+  const errEl = document.getElementById('so-error');
+  errEl.style.display = 'none';
+  const n = window.soLines.length;
+  const items = Array.from({length: n}, (_, idx) => ({
+    item_id: parseInt(document.getElementById(`soli-item-${idx}`)?.value),
+    ordered_qty: parseFloat(document.getElementById(`soli-qty-${idx}`)?.value),
+    rate: parseFloat(document.getElementById(`soli-rate-${idx}`)?.value) || 0,
+  })).filter(i => i.item_id && i.ordered_qty > 0);
+  const body = {
+    so_number: document.getElementById('so-num').value.trim(),
+    customer_id: parseInt(document.getElementById('so-customer').value),
+    warehouse_id: parseInt(document.getElementById('so-warehouse').value),
+    items
+  };
+  try {
+    await api('POST', '/sales-orders/', body);
+    document.getElementById('so-modal').remove();
+    showToast('Sales Order created!');
+    renderSalesOrders();
+  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+}
+
+// ─────────────────────────────────────────────
+// DISPATCH
+// ─────────────────────────────────────────────
+async function renderDispatch() {
+  setTopbarActions(`<button class="btn btn-primary" onclick="openDispatchModal()">+ New Dispatch</button>`);
+  setContent('<div class="loading"><div class="spinner"></div><br/>Loading…</div>');
+  try {
+    const dispatches = await api('GET', '/dispatch/');
+    setContent(`
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>Dispatch #</th><th>SO Number</th><th>Warehouse</th><th>Date</th><th>Vehicle</th><th>Driver</th><th>Actions</th></tr></thead>
+        <tbody>
+          ${dispatches.length ? dispatches.map(d=>`<tr>
+            <td>${codeBadge(d.dispatch_number)}</td>
+            <td style="font-size:12px;">${codeBadge(d.so_number)}</td>
+            <td style="font-size:12px;">${d.warehouse_name}</td>
+            <td style="font-size:12px;">${fmtDate(d.dispatch_date)}</td>
+            <td style="font-size:12px;">${d.vehicle_number||'—'}</td>
+            <td style="font-size:12px;">${d.driver_name||'—'}</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="viewDispatch(${d.id})">👁 View</button></td>
+          </tr>`).join('') : `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">🚛</div><div class="empty-state-text">No dispatches yet</div><div class="empty-state-sub">Create a dispatch against a Sales Order</div></div></td></tr>`}
+        </tbody>
+      </table></div></div>`);
+  } catch(e) { setContent(`<div class="alert alert-error">${e.message}</div>`); }
+}
+
+async function viewDispatch(id) {
+  const d = await api('GET', `/dispatch/${id}`);
+  const html = `
+    <div class="modal-overlay open" id="dispatch-view">
+      <div class="modal modal-lg">
+        <div class="modal-header"><span class="modal-title">Dispatch: ${d.dispatch_number}</span>
+          <button class="modal-close" onclick="document.getElementById('dispatch-view').remove()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="detail-grid" style="margin-bottom:20px;">
+            <div class="detail-item"><label>Sales Order</label><div class="value">${codeBadge(d.so_number)}</div></div>
+            <div class="detail-item"><label>Warehouse</label><div class="value">${d.warehouse_name}</div></div>
+            <div class="detail-item"><label>Dispatch Date</label><div class="value">${fmtDate(d.dispatch_date)}</div></div>
+            <div class="detail-item"><label>Vehicle Number</label><div class="value">${d.vehicle_number||'—'}</div></div>
+            <div class="detail-item"><label>Driver Name</label><div class="value">${d.driver_name||'—'}</div></div>
+          </div>
+          <div class="detail-section-title">Items Dispatched</div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Code</th><th>Item</th><th>Dispatched Qty</th></tr></thead>
+            <tbody>
+              ${d.items.map(i=>`<tr>
+                <td>${codeBadge(i.item_code)}</td><td>${i.item_name}</td>
+                <td style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;">${i.dispatched_qty}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function openDispatchModal() {
+  const activeSOs = _sos.filter(s => s.status !== 'cancelled' && s.status !== 'completed');
+  let dispLines = [];
+  let selectedSO = null;
+
+  function updateDispLines(soId) {
+    selectedSO = _sos.find(s => s.id == soId);
+    if (!selectedSO) { dispLines = []; document.getElementById('disp-lines').innerHTML = '<p style="color:var(--slate);font-size:13px;">Select a SO to load items.</p>'; return; }
+    dispLines = selectedSO.items.map(i => ({ item_id: i.item_id, item_name: i.item_name, item_code: i.item_code, dispatched_qty: '' }));
+    document.getElementById('disp-lines').innerHTML = renderDispLines();
+  }
+
+  function renderDispLines() {
+    if (!dispLines.length) return '<p style="color:var(--slate);font-size:13px;">Select a SO to load items.</p>';
+    return dispLines.map((li, idx) => `
+      <div class="line-item-row" style="grid-template-columns:3fr 1fr;" id="displi-${idx}">
+        <div class="form-group"><label>${codeBadge(li.item_code)} ${li.item_name}</label></div>
+        <div class="form-group"><label>Dispatch Qty</label><input type="number" id="displi-qty-${idx}" value="${li.dispatched_qty}" min="0.01" step="0.01" /></div>
+      </div>`).join('');
+  }
+
+  const html = `
+    <div class="modal-overlay open" id="dispatch-modal">
+      <div class="modal modal-lg">
+        <div class="modal-header"><span class="modal-title">New Dispatch Note</span>
+          <button class="modal-close" onclick="document.getElementById('dispatch-modal').remove()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-warning">⚠️ Creating a dispatch will immediately deduct stock from the warehouse linked to the Sales Order.</div>
+          <div id="disp-error" class="alert alert-error" style="display:none;"></div>
+          <div class="form-grid" style="margin-bottom:16px;">
+            <div class="form-group"><label>Dispatch Number *</label><input id="disp-num" placeholder="DSP-2026-001" /></div>
+            <div class="form-group"><label>Dispatch Date *</label><input type="date" id="disp-date" value="${new Date().toISOString().split('T')[0]}" /></div>
+            <div class="form-group span2"><label>Sales Order *</label>
+              <select id="disp-so" onchange="updateDispLines(this.value)">
+                <option value="">Select SO…</option>
+                ${activeSOs.map(s=>`<option value="${s.id}">${s.so_number} — ${s.customer_name}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group"><label>Vehicle Number</label><input id="disp-vehicle" placeholder="MH 12 AB 1234" /></div>
+            <div class="form-group"><label>Driver Name</label><input id="disp-driver" placeholder="Ramesh Kumar" /></div>
+          </div>
+          <hr class="divider" />
+          <div class="line-items-label" style="margin-bottom:10px;">Items to Dispatch</div>
+          <div id="disp-lines"><p style="color:var(--slate);font-size:13px;">Select a SO to load items.</p></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="document.getElementById('dispatch-modal').remove()">Cancel</button>
+          <button class="btn btn-primary" onclick="saveDispatch()">Create Dispatch</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  window.dispLines = dispLines;
+  window.updateDispLines = updateDispLines;
+  window.renderDispLines = renderDispLines;
+}
+
+async function saveDispatch() {
+  const errEl = document.getElementById('disp-error');
+  errEl.style.display = 'none';
+  const soId = parseInt(document.getElementById('disp-so').value);
+  const so = _sos.find(s => s.id === soId);
+  if (!so) { errEl.textContent = 'Please select a Sales Order.'; errEl.style.display = 'block'; return; }
+  const items = so.items.map((soi, idx) => ({
+    item_id: soi.item_id,
+    dispatched_qty: parseFloat(document.getElementById(`displi-qty-${idx}`)?.value) || 0,
+  })).filter(i => i.dispatched_qty > 0);
+  const body = {
+    dispatch_number: document.getElementById('disp-num').value.trim(),
+    so_id: soId,
+    dispatch_date: document.getElementById('disp-date').value,
+    vehicle_number: document.getElementById('disp-vehicle').value.trim() || null,
+    driver_name: document.getElementById('disp-driver').value.trim() || null,
+    items,
+  };
+  try {
+    await api('POST', '/dispatch/', body);
+    document.getElementById('dispatch-modal').remove();
+    showToast('Dispatch created! Stock deducted.');
+    renderDispatch();
+  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+}
+
+// ─────────────────────────────────────────────
+// ROLES
+// ─────────────────────────────────────────────
+async function renderRoles() {
+  setTopbarActions('');
+  setContent('<div class="loading"><div class="spinner"></div><br/>Loading…</div>');
+  try {
+    const roles = await api('GET', '/roles/');
+    setContent(`
+      <div class="card" style="max-width:500px;">
+        <div class="card-header"><span class="card-title">System Roles</span></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>ID</th><th>Role Name</th></tr></thead>
+          <tbody>
+            ${roles.map(r=>`<tr>
+              <td style="font-family:'JetBrains Mono',monospace;color:var(--slate);">#${r.id}</td>
+              <td style="font-weight:500;">${r.name}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table></div>
+      </div>
+      <p style="margin-top:12px;font-size:12px;color:var(--slate);">Roles are seeded automatically on startup. Use the Role ID when registering new users.</p>`);
+  } catch(e) { setContent(`<div class="alert alert-error">${e.message}</div>`); }
+}
+
+// ─────────────────────────────────────────────
+// BOOT
+// ─────────────────────────────────────────────
+(async () => {
+  if (TOKEN) {
+    try {
+      await initApp();
+    } catch(e) {
+      TOKEN = ''; localStorage.removeItem('fmms_token');
+    }
+  }
+})();
+</script>
+</body>
+</html>
