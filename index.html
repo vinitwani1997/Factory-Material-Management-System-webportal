@@ -196,7 +196,7 @@
 
     <div class="sidebar-footer">
       <div class="api-status"><span class="api-dot" id="apiDot"></span><span id="apiStatusText">Checking API…</span></div>
-      <input class="api-url-input" id="apiUrlInput" value="http://127.0.0.1:8000" onchange="setApiBase(this.value)"/>
+      <input class="api-url-input" id="apiUrlInput" value="https://factory-material-management-system.onrender.com" onchange="setApiBase(this.value)"/>
     </div>
   </div>
 
@@ -471,7 +471,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-let API_BASE = localStorage.getItem('fmms_api_base') || 'http://127.0.0.1:8000';
+let API_BASE = localStorage.getItem('fmms_api_base') || 'https://factory-material-management-system.onrender.com';
 document.getElementById('apiUrlInput').value = API_BASE;
 
 let allItems = [];
