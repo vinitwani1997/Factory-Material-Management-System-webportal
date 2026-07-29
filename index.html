@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>FMMS Simple — Factory Material Management</title>
+<link rel="icon" type="image/png" href="assets/logo.png"/>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
@@ -47,7 +48,9 @@
   .sidebar-logo-icon {
     width: 30px; height: 30px; background: var(--blue); border-radius: 6px;
     display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0;
+    overflow: hidden;
   }
+  .sidebar-logo-icon img { width: 100%; height: 100%; object-fit: cover; }
   .sidebar-logo-text { font-size: 15px; font-weight: 700; color: var(--white); }
   .sidebar-sub { font-size: 10.5px; color: var(--slate-300); margin-top: 1px; }
 
@@ -165,10 +168,10 @@
   <!-- SIDEBAR -->
   <div class="sidebar">
     <div class="sidebar-header">
-      <div class="sidebar-logo-icon">🏭</div>
+      <div class="sidebar-logo-icon"><img src="assets/logo.png" alt="Logo"/></div>
       <div>
-        <div class="sidebar-logo-text">FMMS Simple</div>
-        <div class="sidebar-sub">Material Management</div>
+        <div class="sidebar-logo-text">॥ श्री नारायणी ॥</div>
+        <div class="sidebar-sub">ॲग्रो इंडस्ट्रीस</div>
       </div>
     </div>
 
@@ -185,6 +188,7 @@
     <div class="nav-section">
       <div class="nav-section-label">Stock Movement</div>
       <div class="nav-item" data-page="raw_in" onclick="navigate('raw_in')"><span class="nav-icon">📥</span>Raw Material In</div>
+      <div class="nav-item" data-page="scratch" onclick="navigate('scratch')"><span class="nav-icon">♻️</span>Scratch In</div>
       <div class="nav-item" data-page="production" onclick="navigate('production')"><span class="nav-icon">⚙️</span>Stock (Production)</div>
       <div class="nav-item" data-page="out" onclick="navigate('out')"><span class="nav-icon">🚚</span>Out Material</div>
       <div class="nav-item" data-page="return" onclick="navigate('return')"><span class="nav-icon">↩️</span>Return Material</div>
@@ -192,7 +196,7 @@
 
     <div class="sidebar-footer">
       <div class="api-status"><span class="api-dot" id="apiDot"></span><span id="apiStatusText">Checking API…</span></div>
-      <input class="api-url-input" id="apiUrlInput" value="https://factory-material-management-system.onrender.com" onchange="setApiBase(this.value)"/>
+      <input class="api-url-input" id="apiUrlInput" value="http://127.0.0.1:8000" onchange="setApiBase(this.value)"/>
     </div>
   </div>
 
@@ -212,24 +216,24 @@
       <div class="page active" id="page-dashboard">
         <div class="stats-row">
           <div class="stat-card">
-            <div class="stat-label">Total Items</div>
-            <div class="stat-value" id="statTotalItems">0</div>
-            <div class="stat-sub">Raw + Product</div>
+            <div class="stat-label">Total Scratch In</div>
+            <div class="stat-value" id="statScratchIn">0</div>
+            <div class="stat-sub">scrap/waste added</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Raw Materials</div>
-            <div class="stat-value" id="statRaw">0</div>
-            <div class="stat-sub">in stock</div>
+            <div class="stat-label">Total Items In</div>
+            <div class="stat-value" id="statItemsIn">0</div>
+            <div class="stat-sub">raw + return + scratch</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Products</div>
-            <div class="stat-value" id="statProduct">0</div>
-            <div class="stat-sub">in stock</div>
+            <div class="stat-label">Total Items Out</div>
+            <div class="stat-value" id="statItemsOut">0</div>
+            <div class="stat-sub">dispatched/sold</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Zero Stock Items</div>
-            <div class="stat-value" id="statZero">0</div>
-            <div class="stat-sub">need attention</div>
+            <div class="stat-label">Available Stock</div>
+            <div class="stat-value" id="statAvailableStock">0</div>
+            <div class="stat-sub">total units in factory</div>
           </div>
         </div>
 
@@ -320,6 +324,38 @@
           <table>
             <thead><tr><th>Date</th><th>Item</th><th>Quantity</th><th>Remarks</th></tr></thead>
             <tbody id="rawInTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══════════ SCRATCH IN ══════════ -->
+      <div class="page" id="page-scratch">
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">Scratch In (Scrap/Waste — Stock IN)</div></div>
+          <div class="panel-body">
+            <div class="form-grid">
+              <div class="field">
+                <label>Item</label>
+                <select id="scratchItem"></select>
+              </div>
+              <div class="field">
+                <label>Quantity</label>
+                <input type="number" id="scratchQty" placeholder="e.g. 15" step="any"/>
+              </div>
+              <div class="field">
+                <label>Remarks (optional)</label>
+                <input type="text" id="scratchRemarks" placeholder="e.g. Leftover from cutting"/>
+              </div>
+              <div class="field"><button class="btn btn-primary" onclick="createScratchIn()">+ Add Scratch</button></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">Recent Scratch In</div></div>
+          <table>
+            <thead><tr><th>Date</th><th>Item</th><th>Quantity</th><th>Remarks</th></tr></thead>
+            <tbody id="scratchTableBody"></tbody>
           </table>
         </div>
       </div>
@@ -435,7 +471,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-let API_BASE = localStorage.getItem('fmms_api_base') || 'https://factory-material-management-system.onrender.com';
+let API_BASE = localStorage.getItem('fmms_api_base') || 'http://127.0.0.1:8000';
 document.getElementById('apiUrlInput').value = API_BASE;
 
 let allItems = [];
@@ -444,6 +480,7 @@ const PAGE_META = {
   dashboard: ['Available Material', 'Current stock of every item'],
   items: ['Item Master', 'Raw Material & Product master list'],
   raw_in: ['Raw Material In', 'Record material coming into the factory'],
+  scratch: ['Scratch In', 'Record scrap/waste material added back to stock'],
   production: ['Stock — Production', 'Consume raw material, produce finished goods'],
   out: ['Out Material', 'Record material going out of the factory'],
   return: ['Return Material', 'Record material returned back into stock'],
@@ -541,6 +578,7 @@ async function loadItems() {
   fillSelect('prodProductItem', productItems);
   fillSelect('outItem', allItems);
   fillSelect('returnItem', allItems);
+  fillSelect('scratchItem', allItems);
 }
 
 function fillSelect(id, items) {
@@ -719,6 +757,37 @@ async function loadReturn() {
   renderTxnTable(document.getElementById('returnTableBody'), data, 4);
 }
 
+/* ───────── SCRATCH IN ───────── */
+async function createScratchIn() {
+  const item_id = parseInt(document.getElementById('scratchItem').value);
+  const quantity = parseFloat(document.getElementById('scratchQty').value);
+  const remarks = document.getElementById('scratchRemarks').value.trim() || null;
+  if (!item_id) return showToast('Add an item first', 'error');
+  if (!quantity || quantity <= 0) return showToast('Enter a valid quantity', 'error');
+
+  try {
+    await apiCall('/scratch-in/', { method: 'POST', body: JSON.stringify({ item_id, quantity, remarks }) });
+    document.getElementById('scratchQty').value = '';
+    document.getElementById('scratchRemarks').value = '';
+    showToast('Scratch material added', 'success');
+    await refreshAll();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function loadScratchIn() {
+  const data = await apiCall('/scratch-in/');
+  renderTxnTable(document.getElementById('scratchTableBody'), data, 4);
+}
+
+/* ───────── DASHBOARD SUMMARY ───────── */
+async function loadDashboardSummary() {
+  const data = await apiCall('/dashboard-summary/');
+  document.getElementById('statScratchIn').textContent = data.total_scratch_in;
+  document.getElementById('statItemsIn').textContent = data.total_items_in;
+  document.getElementById('statItemsOut').textContent = data.total_items_out;
+  document.getElementById('statAvailableStock').textContent = data.available_stock;
+}
+
 /* ───────── SHARED TABLE RENDERER (for simple in/out transaction lists) ───────── */
 function renderTxnTable(tbody, data, colspan) {
   if (data.length === 0) {
@@ -727,7 +796,7 @@ function renderTxnTable(tbody, data, colspan) {
   }
   tbody.innerHTML = data.map(t => {
     const item = allItems.find(i => i.id === t.item_id);
-    const isIncrease = (t.txn_type === 'RAW_MATERIAL_IN' || t.txn_type === 'RETURN_MATERIAL');
+    const isIncrease = (t.txn_type === 'RAW_MATERIAL_IN' || t.txn_type === 'RETURN_MATERIAL' || t.txn_type === 'SCRATCH_IN');
     return `
       <tr>
         <td>${fmtDate(t.txn_date)}</td>
@@ -746,7 +815,9 @@ async function refreshAll() {
     await loadItems();
     await Promise.all([
       loadAvailableMaterial(),
+      loadDashboardSummary(),
       loadRawIn(),
+      loadScratchIn(),
       loadProduction(),
       loadOut(),
       loadReturn(),
